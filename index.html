@@ -1,0 +1,1675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PeakBake, Weather-Aware Baking</title>
+  <meta name="description" content="PeakBake adjusts your recipes for altitude, humidity, and barometric pressure. Bake right, wherever you are." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --teal: #1D9E75;
+      --teal-dark: #0F6E56;
+      --teal-light: #E1F5EE;
+      --charcoal: #2C2C2A;
+      --card: #1a1a18;
+      --border: #3a3a38;
+      --grey: #B4B2A9;
+      --amber: #EF9F27;
+      --white: #ffffff;
+      --cream: #F5F0E8;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--charcoal);
+      color: var(--white);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 300;
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    /* NAV */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      background: rgba(44, 44, 42, 0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+
+    .nav-logo img {
+      width: 36px;
+      height: 36px;
+      object-fit: contain;
+    }
+
+    .nav-logo span {
+      font-family: 'Playfair Display', serif;
+      font-size: 20px;
+      color: var(--white);
+      letter-spacing: 1px;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: var(--grey);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 400;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover { color: var(--white); }
+
+    .nav-cta {
+      background: var(--teal);
+      color: var(--white);
+      text-decoration: none;
+      padding: 10px 24px;
+      border-radius: 100px;
+      font-size: 14px;
+      font-weight: 500;
+      transition: background 0.2s;
+    }
+
+    .nav-cta:hover { background: var(--teal-dark); }
+
+    /* HERO — centered layout */
+    .hero-centered {
+      padding: 100px 40px 0;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .hero-top {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      animation: fadeUp 0.8s ease both;
+    }
+
+    .hero-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 28px;
+      justify-content: center;
+    }
+
+    .hero-logo-sm {
+      width: 40px;
+      height: 40px;
+      object-fit: contain;
+    }
+
+    .hero-brand-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 18px;
+      letter-spacing: 2px;
+      color: var(--white);
+    }
+
+    .hero-screenshots {
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 60px;
+      padding-bottom: 60px;
+    }
+
+    .screenshot-frame {
+      flex: 1;
+      max-width: 200px;
+      border-radius: 28px;
+      overflow: hidden;
+      border: 2px solid var(--border);
+      box-shadow: 0 20px 48px rgba(0,0,0,0.5);
+      transform: translateY(0px);
+      transition: transform 0.3s;
+    }
+
+    .screenshot-frame:hover {
+      transform: translateY(-8px);
+    }
+
+    .screenshot-tall {
+      flex: 1.1;
+    }
+
+    .screenshot-tall:hover {
+      transform: translateY(-8px);
+    }
+
+    .screenshot-frame img {
+      width: 100%;
+      display: block;
+    }
+
+    @media (max-width: 900px) {
+      .hero-centered { padding: 100px 24px 0; }
+      .hero-screenshots { gap: 8px; }
+      .screenshot-frame { border-radius: 16px; }
+    }
+
+    @media (max-width: 600px) {
+      .hero-screenshots { gap: 6px; }
+      .screenshot-frame:nth-child(1),
+      .screenshot-frame:nth-child(5) { display: none; }
+    }
+
+    .hero-tagline {
+      font-size: 13px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--teal);
+      margin-bottom: 16px;
+      animation: fadeUp 0.8s ease 0.1s both;
+    }
+
+    .hero-headline {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(36px, 6vw, 68px);
+      font-weight: 900;
+      line-height: 1.1;
+      margin-bottom: 24px;
+      animation: fadeUp 0.8s ease 0.2s both;
+    }
+
+    .hero-headline span { color: var(--teal); }
+
+    .hero-sub {
+      font-size: 18px;
+      color: var(--grey);
+      max-width: 540px;
+      margin: 0 auto 40px;
+      animation: fadeUp 0.8s ease 0.3s both;
+    }
+
+    .hero-buttons {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      justify-content: center;
+      animation: fadeUp 0.8s ease 0.4s both;
+    }
+
+    .btn-primary {
+      background: var(--teal);
+      color: var(--white);
+      text-decoration: none;
+      padding: 16px 36px;
+      border-radius: 100px;
+      font-size: 16px;
+      font-weight: 500;
+      transition: background 0.2s, transform 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-primary:hover {
+      background: var(--teal-dark);
+      transform: translateY(-2px);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--grey);
+      text-decoration: none;
+      padding: 16px 36px;
+      border-radius: 100px;
+      font-size: 16px;
+      border: 1px solid var(--border);
+      transition: border-color 0.2s, color 0.2s;
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--teal);
+      color: var(--teal);
+    }
+
+    .hero-price {
+      margin-top: 20px;
+      font-size: 13px;
+      color: var(--grey);
+      animation: fadeUp 0.8s ease 0.5s both;
+    }
+
+    /* WEATHER STRIP */
+    .weather-strip {
+      background: var(--card);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 32px;
+      flex-wrap: wrap;
+      font-size: 14px;
+      color: var(--grey);
+    }
+
+    .weather-strip span { display: flex; align-items: center; gap: 6px; }
+    .weather-strip .divider { color: var(--border); }
+
+    /* SECTIONS */
+    section {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 100px 40px;
+    }
+
+    .section-label {
+      font-size: 12px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--teal);
+      margin-bottom: 12px;
+    }
+
+    .section-headline {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(28px, 4vw, 48px);
+      font-weight: 700;
+      margin-bottom: 16px;
+      line-height: 1.2;
+    }
+
+    .section-sub {
+      font-size: 17px;
+      color: var(--grey);
+      max-width: 560px;
+      line-height: 1.8;
+    }
+
+    /* HOW IT WORKS */
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+      margin-top: 60px;
+    }
+
+    .step-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.3s, transform 0.3s;
+    }
+
+    .step-card:hover {
+      border-color: var(--teal);
+      transform: translateY(-4px);
+    }
+
+    .step-card::before {
+      content: attr(data-step);
+      position: absolute;
+      top: -10px; right: 20px;
+      font-family: 'Playfair Display', serif;
+      font-size: 80px;
+      font-weight: 900;
+      color: rgba(29, 158, 117, 0.06);
+      line-height: 1;
+    }
+
+    .step-icon { font-size: 32px; margin-bottom: 16px; }
+    .step-title { font-size: 18px; font-weight: 500; margin-bottom: 10px; }
+    .step-desc { font-size: 14px; color: var(--grey); line-height: 1.8; }
+
+    /* FEATURES */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px;
+      margin-top: 60px;
+    }
+
+    .feature-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 28px;
+      transition: border-color 0.3s;
+    }
+
+    .feature-card:hover { border-color: var(--teal-dark); }
+
+    .feature-icon {
+      width: 44px;
+      height: 44px;
+      background: rgba(29, 158, 117, 0.1);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      margin-bottom: 16px;
+    }
+
+    .feature-title { font-size: 16px; font-weight: 500; margin-bottom: 8px; }
+    .feature-desc { font-size: 13px; color: var(--grey); line-height: 1.7; }
+
+    /* DIVIDER */
+    .divider-line {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 0 40px;
+    }
+
+    /* ALTITUDE CALLOUT */
+    .callout {
+      background: var(--card);
+      border: 1px solid var(--teal-dark);
+      border-radius: 20px;
+      padding: 60px;
+      text-align: center;
+      max-width: 1020px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .callout-headline {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(24px, 3.5vw, 40px);
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+
+    .callout-headline span { color: var(--teal); }
+
+    .callout-sub {
+      font-size: 16px;
+      color: var(--grey);
+      max-width: 580px;
+      margin: 0 auto 32px;
+      line-height: 1.8;
+    }
+
+    /* ════════════════════════════════════
+       WIDGET SECTION
+    ════════════════════════════════════ */
+    .widget-section {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 100px 40px;
+    }
+
+    .widget-callout-block {
+      background: var(--card);
+      border: 1px solid var(--teal-dark);
+      border-radius: 20px;
+      padding: 56px 60px;
+      margin-bottom: 60px;
+    }
+
+    .widget-callout-block .section-label { margin-bottom: 16px; }
+
+    .widget-callout-block h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(26px, 3.5vw, 42px);
+      font-weight: 700;
+      line-height: 1.2;
+      margin-bottom: 20px;
+    }
+
+    .widget-callout-block h2 span { color: var(--teal); }
+
+    .widget-callout-block p {
+      font-size: 16px;
+      color: var(--grey);
+      max-width: 600px;
+      line-height: 1.8;
+      margin-bottom: 16px;
+    }
+
+    /* Widget demo grid */
+    .widget-demo-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px;
+      margin-bottom: 40px;
+    }
+
+    .widget-demo-col-label {
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--grey);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .widget-tier-pill {
+      font-size: 10px;
+      font-weight: 500;
+      padding: 2px 8px;
+      border-radius: 10px;
+      letter-spacing: .05em;
+    }
+
+    .pill-free { background: rgba(255,255,255,.08); color: var(--grey); }
+    .pill-pro  { background: rgba(29,158,117,.15); color: var(--teal); border: 1px solid rgba(29,158,117,.25); }
+
+    /* Free mini blog card */
+    .mini-blog-free {
+      background: #FDFAF6;
+      border: 1px solid #E8DDD0;
+      border-radius: 10px;
+      overflow: hidden;
+      color: #2C2015;
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    .mini-hero-free {
+      height: 72px;
+      background: linear-gradient(135deg, #C8A882, #E8C99A, #D4A97A);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+    }
+
+    .mini-body { padding: 14px 16px; }
+    .mini-cat { font-size: .62rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #C0622F; margin-bottom: 3px; }
+    .mini-title { font-size: .92rem; color: #2C2015; margin-bottom: 10px; font-weight: 600; }
+
+    /* Free widget bar */
+    .pb-free-bar {
+      background: #1a1a18;
+      border-radius: 7px;
+      padding: 9px 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      transition: opacity .2s, transform .2s;
+    }
+
+    .pb-free-logo-sm {
+      width: 22px; height: 22px;
+      background: var(--teal);
+      border-radius: 4px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .55rem; font-weight: 700; color: #fff; flex-shrink: 0;
+    }
+
+    .pb-free-bar-text { flex: 1; font-size: .72rem; color: #B4B2A9; line-height: 1.3; }
+    .pb-free-bar-text strong { color: #fff; font-weight: 500; }
+
+    .pb-free-bar-btn {
+      background: var(--teal);
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      padding: 5px 10px;
+      font-family: inherit;
+      font-size: .7rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background .15s;
+      flex-shrink: 0;
+    }
+
+    .pb-free-bar-btn:hover { background: var(--teal-dark); }
+
+    /* Free results panel */
+    .pb-free-results {
+      background: #1a1a18;
+      border-radius: 7px;
+      overflow: hidden;
+      margin-bottom: 10px;
+      display: none;
+      transition: opacity .25s, transform .25s;
+    }
+
+    .pb-free-results-hdr {
+      padding: 9px 12px;
+      border-bottom: 1px solid #2e2e2b;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .pb-free-results-hdr-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+    .pb-loc-label-sm { font-size: .58rem; font-weight: 500; letter-spacing: .07em; text-transform: uppercase; color: #B4B2A9; margin-bottom: 1px; }
+    .pb-loc-name-sm { font-size: .82rem; font-weight: 600; color: #fff; }
+    .pb-atmo-sm { display: flex; gap: 7px; font-size: .62rem; color: #B4B2A9; margin-top: 3px; }
+    .pb-atmo-sm-val { color: #fff; font-weight: 500; }
+
+    .pb-toggle-sm {
+      display: flex;
+      background: #242422;
+      border: 1px solid #2e2e2b;
+      border-radius: 5px;
+      overflow: hidden;
+    }
+
+    .pb-toggle-sm-btn {
+      background: none;
+      border: none;
+      color: #B4B2A9;
+      font-family: inherit;
+      font-size: .66rem;
+      font-weight: 600;
+      padding: 4px 8px;
+      cursor: pointer;
+      transition: all .15s;
+    }
+
+    .pb-toggle-sm-btn.on { background: var(--teal); color: #fff; }
+
+    .pb-close-sm {
+      background: none;
+      border: none;
+      color: #B4B2A9;
+      cursor: pointer;
+      font-size: .78rem;
+      padding: 2px 4px;
+      line-height: 1;
+      transition: color .15s;
+    }
+
+    .pb-close-sm:hover { color: #fff; }
+
+    .pb-ing-list-sm { list-style: none; padding: 0 12px; border-bottom: 1px solid #2e2e2b; }
+
+    .pb-ing-row-sm {
+      padding: 6px 0;
+      border-bottom: 1px solid #2e2e2b;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: .72rem;
+    }
+
+    .pb-ing-row-sm:last-child { border-bottom: none; }
+    .pb-ing-name-sm { flex: 1; color: #B4B2A9; }
+    .pb-ing-amt-sm { color: #fff; font-weight: 500; min-width: 64px; text-align: right; }
+
+    .pb-ing-orig-sm {
+      font-size: .61rem;
+      font-weight: 700;
+      padding: 1px 5px;
+      border-radius: 10px;
+      min-width: 68px;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    .pb-ing-orig-sm.up { background: rgba(29,158,117,.18); color: var(--teal); }
+    .pb-ing-orig-sm.dn { background: rgba(239,159,39,.18); color: var(--amber); }
+    .pb-ing-orig-sm.no { opacity: 0; }
+
+    .pb-bake-sm {
+      padding: 7px 12px;
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+      border-bottom: 1px solid #2e2e2b;
+    }
+
+    .pb-bake-card-sm {
+      background: #242422;
+      border: 1px solid #2e2e2b;
+      border-radius: 4px;
+      padding: 4px 8px;
+      font-size: .64rem;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .pb-bake-val-sm { font-weight: 700; color: var(--amber); }
+
+    .pb-footer-sm {
+      padding: 7px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .pb-branding-sm { font-size: .62rem; color: #B4B2A9; display: flex; align-items: center; gap: 4px; }
+    .pb-brand-logo-sm { width: 13px; height: 13px; background: var(--teal); border-radius: 2px; display: inline-flex; align-items: center; justify-content: center; font-size: .4rem; font-weight: 700; color: #fff; }
+    .pb-app-link-sm { font-size: .62rem; color: var(--teal); text-decoration: none; font-weight: 600; border: 1px solid rgba(29,158,117,.3); padding: 2px 6px; border-radius: 3px; }
+
+    /* Original recipe list — stays unchanged */
+    .mini-ing-list-orig { list-style: none; }
+    .mini-ing-list-orig li { padding: 5px 0; border-bottom: 1px solid #E8DDD0; font-size: .8rem; display: flex; align-items: baseline; gap: 6px; color: #2C2015; }
+    .mini-ing-list-orig li:last-child { border-bottom: none; }
+    .mini-ing-orig-amt { font-weight: 700; min-width: 60px; display: inline-block; }
+    .mini-ing-orig-name { color: #7A6A56; }
+    .mini-instructions-orig { font-size: .73rem; color: #7A6A56; padding-top: 7px; border-top: 1px solid #E8DDD0; line-height: 1.6; margin-top: 4px; }
+    .mini-instructions-orig strong { color: #2C2015; }
+
+    /* Pro mini blog */
+    .mini-blog-pro {
+      --sp-bg: #F7F3EE;
+      --sp-text: #1C1209;
+      --sp-muted: #8C7B68;
+      --sp-border: #DED5C8;
+      --sp-btn: #1C1209;
+      --sp-btn-text: #F7F3EE;
+      --sp-r: 4px;
+      background: var(--sp-bg);
+      border: 1px solid var(--sp-border);
+      border-radius: 10px;
+      overflow: hidden;
+      font-family: 'DM Sans', sans-serif;
+      color: var(--sp-text);
+    }
+
+    .mini-hero-pro {
+      height: 72px;
+      background: linear-gradient(160deg,#3D2B1A,#6B4226,#8B5A2B);
+      display: flex;
+      align-items: flex-end;
+      padding: 8px 14px;
+      position: relative;
+    }
+
+    .mini-hero-pro::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top,rgba(0,0,0,.4),transparent 60%); }
+    .mini-hero-pro-tag { font-size: .58rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: rgba(255,255,255,.6); margin-bottom: 2px; position: relative; z-index: 1; }
+    .mini-hero-pro-title { font-size: .88rem; color: #fff; line-height: 1.15; position: relative; z-index: 1; }
+
+    .pro-body { padding: 12px 14px; }
+    .pro-byline { font-size: .68rem; color: var(--sp-muted); margin-bottom: 10px; }
+
+    /* Pro widget controls */
+    .pb-pro-controls-sm { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+
+    .pb-pro-adjust-btn-sm {
+      background: var(--sp-btn);
+      color: var(--sp-btn-text);
+      border: none;
+      border-radius: var(--sp-r);
+      padding: 7px 13px;
+      font-family: inherit;
+      font-size: .76rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: opacity .15s;
+      white-space: nowrap;
+    }
+
+    .pb-pro-adjust-btn-sm:hover { opacity: .82; }
+
+    .pb-pro-toggle-sm {
+      display: flex;
+      border: 1px solid var(--sp-border);
+      border-radius: var(--sp-r);
+      overflow: hidden;
+    }
+
+    .pb-pro-toggle-btn-sm {
+      background: none;
+      border: none;
+      color: var(--sp-muted);
+      font-family: inherit;
+      font-size: .72rem;
+      font-weight: 600;
+      padding: 5px 10px;
+      cursor: pointer;
+      transition: all .15s;
+    }
+
+    .pb-pro-toggle-btn-sm.on { background: var(--sp-btn); color: var(--sp-btn-text); }
+
+    .pb-pro-status-sm {
+      font-size: .76rem;
+      color: var(--sp-muted);
+      margin-bottom: 4px;
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .pb-pro-status-sm.show { display: flex; }
+    .pb-pro-loc-name-sm { font-weight: 600; color: var(--sp-text); }
+
+    .pb-pro-reset-sm {
+      background: none;
+      border: none;
+      font-family: inherit;
+      font-size: .7rem;
+      color: var(--sp-muted);
+      cursor: pointer;
+      text-decoration: underline;
+      padding: 0;
+    }
+
+    .pb-pro-bake-sm {
+      font-size: .72rem;
+      color: var(--sp-muted);
+      overflow: hidden;
+      max-height: 0;
+      opacity: 0;
+      transition: max-height .35s ease, opacity .3s ease, margin .3s ease;
+    }
+
+    .pb-pro-bake-sm.show { max-height: 30px; opacity: .9; margin-bottom: 8px; }
+    .pb-pro-bake-val-sm { font-weight: 700; color: var(--sp-text); }
+
+    .pro-ing-list-sm { list-style: none; }
+
+    .pro-ing-row-sm {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      padding: 5px 0;
+      border-bottom: 1px solid var(--sp-border, #DED5C8);
+      font-size: .8rem;
+    }
+
+    .pro-ing-row-sm:last-child { border-bottom: none; }
+    .pro-ing-amt-sm { font-weight: 700; min-width: 64px; display: inline-block; transition: color .3s; color: var(--sp-text); }
+    .pro-ing-name-sm { color: var(--sp-muted); flex: 1; }
+
+    .pro-ing-orig-badge-sm {
+      font-size: .64rem;
+      font-weight: 700;
+      padding: 1px 5px;
+      border-radius: 3px;
+      white-space: nowrap;
+      opacity: 0;
+      transform: translateX(-4px);
+      transition: all .35s ease;
+    }
+
+    .pro-ing-orig-badge-sm.show { opacity: 1; transform: translateX(0); }
+    .pro-ing-orig-badge-sm.up { background: rgba(60,140,80,.12); color: #2d7a3a; }
+    .pro-ing-orig-badge-sm.dn { background: rgba(160,80,20,.1); color: #8B4513; }
+
+    .pro-instructions-sm { font-size: .73rem; color: var(--sp-muted); padding-top: 7px; border-top: 1px solid var(--sp-border,#DED5C8); font-style: italic; line-height: 1.6; }
+    .pro-instructions-sm strong { color: var(--sp-text); font-weight: 400; }
+
+    /* Widget pricing strip */
+    .widget-pricing-strip {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 40px;
+    }
+
+    .widget-price-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px 28px;
+    }
+
+    .widget-price-card.pro-card { border-color: var(--teal-dark); }
+
+    .widget-price-tier {
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--grey);
+      margin-bottom: 8px;
+    }
+
+    .widget-price-card.pro-card .widget-price-tier { color: var(--teal); }
+
+    .widget-price-amount {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.6rem;
+      margin-bottom: 14px;
+      color: var(--white);
+    }
+
+    .widget-price-amount span { font-family: 'DM Sans', sans-serif; font-size: .85rem; color: var(--grey); }
+
+    .widget-price-features { list-style: none; }
+
+    .widget-price-features li {
+      font-size: .86rem;
+      color: var(--grey);
+      padding: 4px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .widget-price-features li::before { content: '✓'; color: var(--teal); font-weight: 700; flex-shrink: 0; }
+    .widget-price-features li.no::before { content: '—'; color: var(--border); }
+    .widget-price-features li.no { opacity: .5; }
+
+    .widget-install-block {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 28px 32px;
+    }
+
+    .widget-install-block h3 { font-size: 16px; font-weight: 500; margin-bottom: 8px; }
+    .widget-install-block p { font-size: 14px; color: var(--grey); margin-bottom: 16px; line-height: 1.7; }
+
+    .code-block {
+      background: #111110;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 18px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      color: #B4B2A9;
+      margin-bottom: 20px;
+      overflow-x: auto;
+    }
+
+    .code-block .c-tag  { color: #7dd3c8; }
+    .code-block .c-attr { color: #86c5a0; }
+    .code-block .c-val  { color: #e6b87a; }
+
+    /* SUPPORT */
+    #support { border-top: 1px solid var(--border); }
+
+    .support-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      margin-top: 48px;
+    }
+
+    @media (max-width: 640px) { .support-grid { grid-template-columns: 1fr; } }
+
+    .support-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 28px;
+    }
+
+    .support-card h3 { font-size: 17px; font-weight: 500; margin-bottom: 10px; }
+    .support-card p { font-size: 14px; color: var(--grey); line-height: 1.8; margin-bottom: 16px; }
+    .support-card a { color: var(--teal); text-decoration: none; font-size: 14px; }
+    .support-card a:hover { text-decoration: underline; }
+
+    /* PRIVACY */
+    #privacy { border-top: 1px solid var(--border); }
+
+    .privacy-block {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 40px;
+      margin-top: 48px;
+    }
+
+    .privacy-block h3 { font-size: 16px; font-weight: 500; color: var(--teal); margin: 28px 0 8px; }
+    .privacy-block h3:first-child { margin-top: 0; }
+    .privacy-block p, .privacy-block li { font-size: 14px; color: var(--grey); line-height: 1.9; }
+    .privacy-block ul { padding-left: 20px; margin-top: 8px; }
+    .privacy-block li { margin-bottom: 4px; }
+
+    /* FOOTER */
+    footer {
+      background: var(--card);
+      border-top: 1px solid var(--border);
+      padding: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .footer-logo { display: flex; align-items: center; gap: 10px; }
+    .footer-logo img { width: 28px; height: 28px; object-fit: contain; }
+    .footer-logo span { font-family: 'Playfair Display', serif; font-size: 16px; color: var(--white); }
+    .footer-links { display: flex; gap: 24px; flex-wrap: wrap; }
+    .footer-links a { color: var(--grey); text-decoration: none; font-size: 13px; transition: color 0.2s; }
+    .footer-links a:hover { color: var(--teal); }
+    .footer-copy { font-size: 12px; color: var(--border); width: 100%; text-align: center; margin-top: 8px; }
+
+    /* SCREENSHOTS */
+    .screenshots-row {
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+
+    .phone-wrap { display: flex; flex-direction: column; align-items: center; gap: 16px; transform: scale(0.92); transition: transform 0.3s; }
+    .phone-wrap:hover { transform: scale(0.96); }
+    .phone-center { transform: scale(1); }
+    .phone-center:hover { transform: scale(1.02); }
+
+    .phone-frame {
+      border-radius: 36px;
+      overflow: hidden;
+      border: 2px solid var(--border);
+      box-shadow: 0 24px 60px rgba(0,0,0,0.5);
+      width: 200px;
+    }
+
+    .phone-frame img { width: 100%; display: block; }
+    .screenshot-label { font-size: 13px; color: var(--grey); max-width: 180px; text-align: center; line-height: 1.5; }
+
+    @media (max-width: 640px) {
+      .screenshots-row { gap: 16px; }
+      .phone-frame { width: 150px; border-radius: 24px; }
+      .phone-wrap, .phone-center { transform: scale(1); }
+    }
+
+    /* ANIMATIONS */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 768px) {
+      nav { padding: 14px 20px; }
+      .nav-links { display: none; }
+      section { padding: 70px 24px; }
+      .callout { padding: 40px 24px; }
+      footer { padding: 32px 24px; }
+      .divider-line { margin: 0 24px; }
+      .weather-strip { padding: 14px 20px; gap: 16px; }
+      .widget-section { padding: 70px 24px; }
+      .widget-demo-grid { grid-template-columns: 1fr; }
+      .widget-pricing-strip { grid-template-columns: 1fr; }
+      .widget-callout-block { padding: 36px 28px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <a href="#" class="nav-logo">
+      <img src="Logo2048x2048.png" alt="PeakBake logo" />
+      <span>PEAKBAKE</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="#how-it-works">How it works</a></li>
+      <li><a href="#widget">For bloggers</a></li>
+      <li><a href="#download">Download</a></li>
+      <li><a href="#support">Support</a></li>
+    </ul>
+    <a href="#download" class="nav-cta">Download, $2.99</a>
+  </nav>
+
+  <!-- HERO — split layout: text left, phones right -->
+  <div class="hero-centered">
+    <div class="hero-top">
+      <div class="hero-brand">
+        <img src="Logo2048x2048.png" alt="PeakBake" class="hero-logo-sm" />
+        <span class="hero-brand-name">PEAKBAKE</span>
+      </div>
+      <p class="hero-tagline">Weather-aware baking</p>
+      <h1 class="hero-headline">Bake right,<br /><span>wherever you are.</span></h1>
+      <p class="hero-sub">
+        Every recipe assumes sea level. PeakBake adjusts your ingredients, bake time, and temperature for your exact altitude, humidity, and barometric pressure.
+      </p>
+      <div class="hero-buttons">
+        <a href="#download" class="btn-primary">⬇ Download on the App Store</a>
+        <a href="#how-it-works" class="btn-secondary">How it works</a>
+      </div>
+      <p class="hero-price">$2.99 one-time purchase · No subscription · No ads</p>
+    </div>
+    <div class="hero-screenshots">
+      <div class="screenshot-frame"><img src="IMG_0840.png" alt="PeakBake recipe with hero image" /></div>
+      <div class="screenshot-frame screenshot-tall"><img src="IMG_0841.png" alt="PeakBake adjusted ingredients" /></div>
+      <div class="screenshot-frame screenshot-tall"><img src="IMG_0843.png" alt="PeakBake custom recipe builder" /></div>
+      <div class="screenshot-frame"><img src="IMG_0842.png" alt="PeakBake my book" /></div>
+      <div class="screenshot-frame"><img src="IMG_0844.png" alt="PeakBake settings" /></div>
+    </div>
+  </div>
+
+  <!-- WEATHER STRIP -->
+  <div class="weather-strip">
+    <span>📍 Your location</span>
+    <span class="divider">|</span>
+    <span>⛰ Elevation detected</span>
+    <span class="divider">|</span>
+    <span>💧 Humidity reading</span>
+    <span class="divider">|</span>
+    <span>🌡 Barometric pressure</span>
+    <span class="divider">|</span>
+    <span style="color: #1D9E75;">✓ Recipe adjusted</span>
+  </div>
+
+  <!-- HOW IT WORKS -->
+  <section id="how-it-works">
+    <p class="section-label">How it works</p>
+    <h2 class="section-headline">Three steps to a perfect bake</h2>
+    <p class="section-sub">PeakBake works silently in the background so you can focus on baking, not math.</p>
+    <div class="steps">
+      <div class="step-card" data-step="1">
+        <div class="step-icon">📍</div>
+        <h3 class="step-title">PeakBake reads your location</h3>
+        <p class="step-desc">Using your device's GPS, PeakBake pinpoints your exact position and pulls live atmospheric data from Open-Meteo: elevation, humidity, and barometric pressure.</p>
+      </div>
+      <div class="step-card" data-step="2">
+        <div class="step-icon">🧮</div>
+        <h3 class="step-title">The engine runs the math</h3>
+        <p class="step-desc">Our adjustment engine applies real baking science, reducing leavening at altitude, adding liquid to compensate for evaporation, adjusting flour for humidity, and more.</p>
+      </div>
+      <div class="step-card" data-step="3">
+        <div class="step-icon">✓</div>
+        <h3 class="step-title">You get your adjusted recipe</h3>
+        <p class="step-desc">Every ingredient is updated with up and down indicators showing exactly what changed and why. Bake adjustments for temperature and time are calculated automatically.</p>
+      </div>
+    </div>
+  </section>
+
+
+
+  <hr class="divider-line" />
+
+  <!-- CALLOUT — bridges app to widget -->
+  <div style="padding: 80px 0;">
+    <div class="callout">
+      <h2 class="callout-headline">June in Georgia shares recipes with followers<br /><span>baking at 8,000 feet.</span></h2>
+      <p class="callout-sub">
+        Every major baking blog, cookbook, and recipe site assumes sea level. June's followers in Denver, Albuquerque, and Salt Lake City have been quietly failing those recipes for years, not because of June, but because no recipe accounts for altitude or humidity. PeakBake fixes that, for the app and for every recipe site on the web.
+      </p>
+      <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;">
+        <a href="#download" class="btn-primary">Get PeakBake for $2.99</a>
+        <a href="#widget" class="btn-secondary">Add to your recipe site</a>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider-line" />
+
+  <!-- ════ WIDGET SECTION ════ -->
+  <div class="widget-section" id="widget">
+
+    <div class="widget-callout-block">
+      <p class="section-label">For food bloggers</p>
+      <h2>Do you run a recipe site?<br /><span>Your readers in Denver are failing your recipes.</span></h2>
+      <p>They don't know why. You don't know why. Every recipe you've ever written assumes sea level, because every blog, cookbook, and cooking show does. Your followers at altitude have been quietly getting dense bread and flat cakes for years.</p>
+      <p>One line of code fixes that. PeakBake Widget adds an "Adjust for my location" button to your recipe pages. Your readers click it, their GPS pulls live atmospheric data, and the ingredients update instantly, in cups or grams, automatically matched to their location.</p>
+    </div>
+
+    <!-- Live demo — real GPS -->
+    <p class="section-label" style="margin-bottom:20px">Try it yourself, click Adjust below</p>
+
+    <div class="widget-demo-grid">
+
+      <!-- Free tier -->
+      <div>
+        <div class="widget-demo-col-label">
+          Free tier <span class="widget-tier-pill pill-free">Free forever</span>
+        </div>
+        <div class="mini-blog-free">
+          <div class="mini-hero-free">🍞</div>
+          <div class="mini-body">
+            <div class="mini-cat">Bread Baking</div>
+            <div class="mini-title">Sally's Sandwich Bread</div>
+
+            <!-- Free widget bar -->
+            <div class="pb-free-bar" id="pb-free-bar">
+              <div class="pb-free-logo-sm">PB</div>
+              <div class="pb-free-bar-text"><strong>Not at sea level?</strong> Adjust for your location.</div>
+              <button class="pb-free-bar-btn" onclick="PBW.adjustFree()">Adjust</button>
+            </div>
+
+            <!-- Free results panel -->
+            <div class="pb-free-results" id="pb-free-results">
+              <div class="pb-free-results-hdr">
+                <div>
+                  <div class="pb-loc-label-sm">Adjusted for</div>
+                  <div class="pb-loc-name-sm" id="pb-loc-name">—</div>
+                  <div class="pb-atmo-sm">
+                    <span>⛰ <span class="pb-atmo-sm-val" id="pb-elev">—</span></span>
+                    <span>💧 <span class="pb-atmo-sm-val" id="pb-humid">—</span></span>
+                  </div>
+                </div>
+                <div class="pb-free-results-hdr-right">
+                  <div class="pb-toggle-sm">
+                    <button class="pb-toggle-sm-btn on" id="f-cups" onclick="PBW.setFreeUnit('cups')">cups</button>
+                    <button class="pb-toggle-sm-btn" id="f-grams" onclick="PBW.setFreeUnit('grams')">g</button>
+                  </div>
+                  <button class="pb-close-sm" onclick="PBW.resetFree()">✕</button>
+                </div>
+              </div>
+              <ul class="pb-ing-list-sm" id="pb-free-ing-list"></ul>
+              <div class="pb-bake-sm" id="pb-free-bake"></div>
+              <div class="pb-footer-sm">
+                <div class="pb-branding-sm"><span class="pb-brand-logo-sm">PB</span> Adjusted by PeakBake</div>
+                <a class="pb-app-link-sm" href="#download">Get the app →</a>
+              </div>
+            </div>
+
+            <!-- Original recipe — unchanged -->
+            <ul class="mini-ing-list-orig">
+              <li><span class="mini-ing-orig-amt">3½ cups</span><span class="mini-ing-orig-name">bread flour</span></li>
+              <li><span class="mini-ing-orig-amt">1¼ cups</span><span class="mini-ing-orig-name">warm water</span></li>
+              <li><span class="mini-ing-orig-amt">2¼ tsp</span><span class="mini-ing-orig-name">active dry yeast</span></li>
+              <li><span class="mini-ing-orig-amt">1 tbsp</span><span class="mini-ing-orig-name">sugar</span></li>
+              <li><span class="mini-ing-orig-amt">1½ tsp</span><span class="mini-ing-orig-name">sea salt</span></li>
+            </ul>
+            <div class="mini-instructions-orig">Proof <strong>90 min</strong> · Bake at <strong>375°F</strong> for <strong>32 min</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pro tier -->
+      <div>
+        <div class="widget-demo-col-label">
+          Pro tier <span class="widget-tier-pill pill-pro">$2.99/month</span>
+        </div>
+        <div class="mini-blog-pro">
+          <div class="mini-hero-pro">
+            <div>
+              <div class="mini-hero-pro-tag">From the bread chapter</div>
+              <div class="mini-hero-pro-title">Sally's Bread, <em>adapted for my kitchen</em></div>
+            </div>
+          </div>
+          <div class="pro-body">
+            <div class="pro-byline">Ruth Kessler · Denver, CO</div>
+            <div class="pb-pro-controls-sm">
+              <button class="pb-pro-adjust-btn-sm" id="pb-pro-btn" onclick="PBW.adjustPro()">Adjust for my location</button>
+              <div class="pb-pro-toggle-sm">
+                <button class="pb-pro-toggle-btn-sm on" id="p-cups" onclick="PBW.setProUnit('cups')">cups</button>
+                <button class="pb-pro-toggle-btn-sm" id="p-grams" onclick="PBW.setProUnit('grams')">g</button>
+              </div>
+            </div>
+            <div class="pb-pro-status-sm" id="pb-pro-status">
+              <span>Adjusted for <span class="pb-pro-loc-name-sm" id="pb-pro-loc">—</span> <span style="opacity:.6;font-size:.68rem" id="pb-pro-atmo"></span></span>
+              <button class="pb-pro-reset-sm" onclick="PBW.resetPro()">Reset</button>
+            </div>
+            <div class="pb-pro-bake-sm" id="pb-pro-bake"></div>
+            <ul class="pro-ing-list-sm" id="pb-pro-ing-list"></ul>
+            <div class="pro-instructions-sm">Proof about <strong id="pro-proof">90 minutes</strong>. Bake at <strong id="pro-temp">375°F</strong> for <strong id="pro-bake">32 minutes</strong>.</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Pricing -->
+    <div class="widget-pricing-strip">
+      <div class="widget-price-card">
+        <div class="widget-price-tier">Free tier</div>
+        <div class="widget-price-amount">$0 <span>forever</span></div>
+        <ul class="widget-price-features">
+          <li>One line of code to install</li>
+          <li>Real GPS and atmospheric data</li>
+          <li>Cups and grams toggle</li>
+          <li>Bake time and temp adjustments</li>
+          <li class="no">PeakBake branding shown</li>
+          <li class="no">Custom colors</li>
+        </ul>
+      </div>
+      <div class="widget-price-card pro-card">
+        <div class="widget-price-tier">Pro</div>
+        <div class="widget-price-amount">$2.99 <span>/month or $24.99/year</span></div>
+        <ul class="widget-price-features">
+          <li>Everything in free</li>
+          <li>No PeakBake branding</li>
+          <li>Inherits your site's colors</li>
+          <li>Minimal two-button UI</li>
+          <li>Dashboard and embed generator</li>
+          <li>Custom button label</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Install code -->
+    <div class="widget-install-block">
+      <h3>Add to your recipe site in 60 seconds</h3>
+      <p>Paste these two lines into your site header. Works on WordPress, Squarespace, Ghost, Wix, and anywhere else you publish recipes.</p>
+      <div class="code-block">
+        <span class="c-tag">&lt;style&gt;</span>.pb-tag { display: none }<span class="c-tag">&lt;/style&gt;</span><br>
+        <span class="c-tag">&lt;script </span><span class="c-attr">src</span>=<span class="c-val">"https://cdn.peakbake.com/widget.js"</span><span class="c-tag">&gt;&lt;/script&gt;</span>
+      </div>
+      <a href="https://peakbake.com/widget" class="btn-primary" style="display:inline-flex">Read the install guide →</a>
+    </div>
+
+  </div>
+  <!-- ════ END WIDGET SECTION ════ -->
+
+  <hr class="divider-line" />
+
+  <!-- FEATURES -->
+  <section id="features">
+    <p class="section-label">Features</p>
+    <h2 class="section-headline">Everything a baker needs</h2>
+    <p class="section-sub">50 recipes across 6 categories, all fully adjusted for your conditions.</p>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">🍞</div>
+        <h3 class="feature-title">50 curated recipes</h3>
+        <p class="feature-desc">Yeast breads, quick breads, cakes, cookies, pastry, and savory. Every recipe includes ingredients, grams, and step-by-step instructions.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">⇄</div>
+        <h3 class="feature-title">Surprise Me</h3>
+        <p class="feature-desc">Not sure what to bake? Tap Surprise Me and get a random recipe from your chosen category, fully adjusted for your conditions.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">➕</div>
+        <h3 class="feature-title">Custom add-ins</h3>
+        <p class="feature-desc">Add sweet, savory, or custom ingredients to any recipe. Chocolate chips, dried fruit, cheese, adjust amounts with a tap.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📖</div>
+        <h3 class="feature-title">My Book</h3>
+        <p class="feature-desc">Save adjusted recipes to your personal collection. Add notes, ratings, and share your results with friends and family.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">✏️</div>
+        <h3 class="feature-title">Custom recipe builder</h3>
+        <p class="feature-desc">Add any recipe and PeakBake adjusts it for your exact elevation and humidity. Select your ingredients from curated dropdowns and get the same adjustments as our built-in recipes.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📚</div>
+        <h3 class="feature-title">Baking reference</h3>
+        <p class="feature-desc">Flour guide, 20-term glossary, and baking tips organized by category. Perfect for first-time bakers and seasoned pros alike.</p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider-line" />
+
+  <!-- DOWNLOAD -->
+  <section id="download" style="text-align: center;">
+    <p class="section-label">Get the app</p>
+    <h2 class="section-headline">Available on iOS and Android</h2>
+    <p class="section-sub" style="margin: 0 auto 40px;">One-time purchase of $2.99. No subscription. No ads. No account required.</p>
+    <div class="hero-buttons">
+      <a href="#" class="btn-primary">⬇ Download on the App Store</a>
+      <a href="#" class="btn-secondary">Get it on Google Play</a>
+    </div>
+    <p style="margin-top: 20px; font-size: 13px; color: var(--grey);">$2.99 one-time · No subscription · No ads</p>
+  </section>
+
+  <hr class="divider-line" />
+
+  <!-- SUPPORT -->
+  <section id="support">
+    <p class="section-label">Support</p>
+    <h2 class="section-headline">We're here to help</h2>
+    <p class="section-sub">Questions, feedback, or issues, reach out and we'll get back to you promptly.</p>
+    <div class="support-grid">
+      <div class="support-card">
+        <h3>Contact us</h3>
+        <p>For support, questions, or feedback about PeakBake, email us directly. We typically respond within 24 hours.</p>
+        <a href="/cdn-cgi/l/email-protection#4c3f393c3c233e386a6f7a78773c292d272e2d2729622f2321">support&#64;peakbake.com</a>
+      </div>
+      <div class="support-card">
+        <h3>Frequently asked questions</h3>
+        <p><strong style="color: #fff; font-weight: 500;">Why does PeakBake need my location?</strong><br />
+        PeakBake uses GPS to pull live atmospheric data: elevation, humidity, and pressure, to adjust your recipes accurately. Location data is never stored or shared.</p>
+      </div>
+      <div class="support-card">
+        <h3>Share your custom recipe</h3>
+        <p>Have a recipe you love that bakes perfectly with PeakBake? We'd love to hear about it. Reach out and tell us how it turned out.</p>
+        <a href="/cdn-cgi/l/email-protection#1e767b727271383d282a256e7b7f757c7f757b307d7173">Get in touch</a>
+      </div>
+      <div class="support-card">
+        <h3>Technical issues</h3>
+        <p>If you're experiencing a bug or unexpected behavior, please email us with your device model, iOS or Android version, and a description of the issue.</p>
+        <a href="/cdn-cgi/l/email-protection#e5969095958a9791c3c6d3d1de9580848e87848e80cb868a88">Report an issue</a>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider-line" />
+
+  <!-- PRIVACY -->
+  <section id="privacy">
+    <p class="section-label">Legal</p>
+    <h2 class="section-headline">Privacy Policy</h2>
+    <p class="section-sub">Last updated: April 2026</p>
+    <div class="privacy-block">
+      <h3>Overview</h3>
+      <p>PeakBake ("the app") is developed and maintained by Frank Hatcher. We are committed to protecting your privacy. This policy explains what data PeakBake collects, how it is used, and your rights as a user.</p>
+      <h3>Location Data</h3>
+      <p>PeakBake requests access to your device's GPS location for the sole purpose of retrieving live atmospheric data, including elevation, humidity, and barometric pressure, from Open-Meteo, a free and open weather API. This data is used exclusively to calculate recipe adjustments.</p>
+      <ul>
+        <li>Your location is never stored on our servers.</li>
+        <li>Your location is never shared with third parties.</li>
+        <li>Location data is used in real time and discarded after each session.</li>
+        <li>You may deny location access at any time in your device settings. The app will not function without location access as it is required for atmospheric data retrieval.</li>
+      </ul>
+      <h3>Data We Do Not Collect</h3>
+      <p>PeakBake does not collect, store, or transmit any of the following:</p>
+      <ul>
+        <li>Personal information such as name, email address, or account credentials</li>
+        <li>Device identifiers or advertising IDs</li>
+        <li>Usage analytics or behavioral data</li>
+        <li>Recipes saved in My Book are stored locally on your device only</li>
+      </ul>
+      <h3>Third-Party Services</h3>
+      <p>PeakBake uses Open-Meteo (open-meteo.com) to retrieve weather data. Open-Meteo is a free, open-source weather API. Please refer to their privacy policy for information on how they handle data.</p>
+      <h3>Data Storage</h3>
+      <p>All recipes saved to My Book are stored locally on your device using AsyncStorage. This data does not leave your device and is not accessible to us.</p>
+      <h3>Children's Privacy</h3>
+      <p>PeakBake is not directed at children under the age of 13 and we do not knowingly collect any personal information from children.</p>
+      <h3>Changes to This Policy</h3>
+      <p>We may update this privacy policy from time to time. Any changes will be reflected on this page with an updated date. Continued use of the app after changes constitutes acceptance of the revised policy.</p>
+      <h3>Contact</h3>
+      <p>If you have questions about this privacy policy, please contact us at <a href="/cdn-cgi/l/email-protection#157d7079797a333623212e6570747e77747e703b767a78" style="color: var(--teal);">hello&#64;peakbake.com</a>.</p>
+      <h3>Disclaimer</h3>
+      <p>PeakBake provides recipe adjustments based on atmospheric data and established baking science. Results may vary depending on ingredients, equipment, and technique. PeakBake is not liable for baking outcomes. All adjustments are provided as guidance only.</p>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-logo">
+      <img src="Logo2048x2048.png" alt="PeakBake" />
+      <span>PEAKBAKE</span>
+    </div>
+    <div class="footer-links">
+      <a href="#how-it-works">How it works</a>
+      <a href="#widget">Widget</a>
+      <a href="#download">Download</a>
+      <a href="#support">Support</a>
+      <a href="#privacy">Privacy</a>
+      <a href="https://hatchappsllc.com" target="_blank" rel="noopener">Hatch Apps LLC</a>
+    </div>
+    <p class="footer-copy">&copy; 2026 Hatch Apps LLC. All rights reserved.</p>
+  </footer>
+
+  <!-- ════ WIDGET DEMO JS — live GPS ════ -->
+  <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+  const PBW = (function() {
+
+    var FRACS = {0.125:'\u215b',0.25:'\u00bc',0.333:'\u2153',0.375:'\u215c',0.5:'\u00bd',0.625:'\u215d',0.667:'\u2154',0.75:'\u00be',0.875:'\u215e'};
+    var GRAM  = { flour:120, water:237, _tsp:{yeast:3,salt:6,sugar:4.2}, _tbsp:{sugar:12.5} };
+    var LIQUID = { water:true };
+    var TYPES  = { flour:'FLOUR', water:'LIQUID', yeast:'LEAVENING', sugar:'SUGAR', salt:'NONE' };
+
+    var INGS = [
+      {id:'flour', amount:3.5,  unit:'cups', name:'Bread flour'},
+      {id:'water', amount:1.25, unit:'cups', name:'Warm water'},
+      {id:'yeast', amount:2.25, unit:'tsp',  name:'Active dry yeast'},
+      {id:'sugar', amount:1,    unit:'tbsp', name:'Sugar'},
+      {id:'salt',  amount:1.5,  unit:'tsp',  name:'Sea salt'},
+    ];
+
+    var fUnit='cups', pUnit='cups', fShown=false, pShown=false;
+    var cache = null; // { results, bake, locName, elevFt, humidity }
+
+    function frac(v) {
+      var w=Math.floor(v), f=Math.round((v-w)*1000)/1000, fs=FRACS[f]||(f>0?String(f):'');
+      return w===0?(fs||'0'):(fs?w+fs:String(w));
+    }
+    function roundU(v,u) {
+      if(u==='cups') return Math.round(v*4)/4;
+      if(u==='tbsp') return Math.round(v*2)/2;
+      if(u==='tsp')  return Math.round(v*4)/4;
+      return Math.round(v*100)/100;
+    }
+    function toG(a,u,id) {
+      if(u==='cups') return Math.round(a*(GRAM[id]||120));
+      if(u==='tsp')  return Math.round(a*(GRAM._tsp[id]||4));
+      if(u==='tbsp') return Math.round(a*(GRAM._tbsp[id]||14));
+      return Math.round(a);
+    }
+    function gUnit(u,id) { return (u==='cups'&&LIQUID[id])?'ml':'g'; }
+
+    function calcAdj(ing, elevFt, humidity) {
+      var t = TYPES[ing.id];
+      var adj = ing.amount, delta = 0;
+      var alt = null;
+      if(elevFt > 7000) alt = {lm:0.50, lpc:0.25,  tf:25, bm:-8,  pm:-20};
+      else if(elevFt > 5000) alt = {lm:0.65, lpc:0.125, tf:15, bm:-6,  pm:-15};
+      else if(elevFt > 3500) alt = {lm:0.75, lpc:0.125, tf:0,  bm:-4,  pm:-10};
+
+      if(alt) {
+        if(t==='LEAVENING') { adj=Math.max(ing.amount*alt.lm, ing.amount*0.25); delta=adj-ing.amount; }
+        if(t==='LIQUID')    { var ex=ing.amount*alt.lpc; adj=ing.amount+ex; delta=ex; }
+      }
+      if(humidity > 70) {
+        if(t==='FLOUR')  { adj+=0.125; delta+=0.125; }
+        if(t==='LIQUID') { adj-=0.125; delta-=0.125; }
+      } else if(humidity < 30) {
+        if(t==='FLOUR')  { adj-=0.125; delta-=0.125; }
+        if(t==='LIQUID') { adj+=0.125; delta+=0.125; }
+      }
+      return {id:ing.id, amount:ing.amount, unit:ing.unit, name:ing.name, adj:adj, delta:delta, alt:alt};
+    }
+
+    function dispAmt(ing, mode) {
+      if(mode==='grams') return toG(ing.adj,ing.unit,ing.id)+gUnit(ing.unit,ing.id);
+      return frac(roundU(ing.adj,ing.unit))+' '+ing.unit;
+    }
+    function dispOrig(ing, mode) {
+      if(Math.abs(ing.delta)<0.005) return null;
+      var a = dispAmt(ing,mode);
+      var o = mode==='grams' ? toG(ing.amount,ing.unit,ing.id)+gUnit(ing.unit,ing.id) : frac(roundU(ing.amount,ing.unit))+' '+ing.unit;
+      if(a===o) return null;
+      return (ing.delta>0?'\u25b2':'\u25bc')+' was '+o;
+    }
+
+    function reverseGeocode(lat, lon) {
+      return fetch('https://nominatim.openstreetmap.org/reverse?lat='+lat+'&lon='+lon+'&format=json', {headers:{'Accept-Language':'en'}})
+        .then(function(r){return r.json();})
+        .then(function(d){
+          var cc = ((d.address&&d.address.country_code)||'us').toUpperCase();
+          var city = d.address&&(d.address.city||d.address.town||d.address.village||d.address.county)||'';
+          var state = d.address&&d.address.state_code||'';
+          var ctry = d.address&&d.address.country||'';
+          var name = cc==='US'&&city&&state ? city+', '+state : city ? city+', '+ctry : lat.toFixed(2)+'\u00b0, '+lon.toFixed(2)+'\u00b0';
+          return {name:name, cc:cc};
+        })
+        .catch(function(){ return {name:lat.toFixed(2)+'\u00b0, '+lon.toFixed(2)+'\u00b0', cc:'US'}; });
+    }
+
+    function fetchAtmo(lat, lon) {
+      return Promise.all([
+        fetch('https://api.open-meteo.com/v1/elevation?latitude='+lat+'&longitude='+lon),
+        fetch('https://api.open-meteo.com/v1/forecast?latitude='+lat+'&longitude='+lon+'&current=relative_humidity_2m,surface_pressure')
+      ]).then(function(rs){ return Promise.all(rs.map(function(r){return r.json();})); })
+        .then(function(data){
+          var elevFt = Math.round(((data[0].elevation&&data[0].elevation[0])||0)*3.28084);
+          var humidity = (data[1].current&&data[1].current.relative_humidity_2m)||50;
+          var pressure = Math.round((data[1].current&&data[1].current.surface_pressure)||1013);
+          return {elevFt:elevFt, humidity:humidity, pressure:pressure};
+        });
+    }
+
+    function doAdjust(callback) {
+      if(cache) { callback(cache); return; }
+      if(!navigator.geolocation) { callback(null); return; }
+      navigator.geolocation.getCurrentPosition(function(pos) {
+        var lat=pos.coords.latitude, lon=pos.coords.longitude;
+        Promise.all([fetchAtmo(lat,lon), reverseGeocode(lat,lon)])
+          .then(function(res) {
+            var atmo=res[0], geo=res[1];
+            var METRIC = {DE:1,FR:1,IT:1,ES:1,PT:1,NL:1,BE:1,AT:1,CH:1,SE:1,NO:1,DK:1,FI:1,AU:1,NZ:1,GB:1,IE:1,JP:1,KR:1,CN:1,TW:1,BR:1,AR:1,MX:1};
+            var defaultUnit = METRIC[geo.cc] ? 'grams' : 'cups';
+            var results = INGS.map(function(ing){ return calcAdj(ing, atmo.elevFt, atmo.humidity); });
+            var alt = results[0].alt;
+            var bake = alt ? {tf:alt.tf, bm:alt.bm, pm:alt.pm} : null;
+            cache = {results:results, bake:bake, locName:geo.name, elevFt:atmo.elevFt, humidity:atmo.humidity, pressure:atmo.pressure, defaultUnit:defaultUnit};
+            fUnit = defaultUnit;
+            pUnit = defaultUnit;
+            callback(cache);
+          })
+          .catch(function(){ callback(null); });
+      }, function(){ callback(null); }, {timeout:10000, maximumAge:60000});
+    }
+
+    function renderFreeList(mode) {
+      var list = document.getElementById('pb-free-ing-list');
+      if(!list) return;
+      list.innerHTML = '';
+      cache.results.forEach(function(ing) {
+        var orig = dispOrig(ing,mode);
+        var dir  = ing.delta>0.005?'up':ing.delta<-0.005?'dn':'no';
+        list.innerHTML += '<li class="pb-ing-row-sm"><span class="pb-ing-name-sm">'+ing.name+'</span><span class="pb-ing-amt-sm">'+dispAmt(ing,mode)+'</span><span class="pb-ing-orig-sm '+dir+'">'+(orig||'')+'</span></li>';
+      });
+      var ts = mode==='grams'?'+8\u00b0C':'+15\u00b0F';
+      var cards = document.getElementById('pb-free-bake');
+      if(cards && cache.bake) {
+        cards.innerHTML =
+          '<div class="pb-bake-card-sm">\ud83d\udd25 Oven <span class="pb-bake-val-sm">'+ts+'</span></div>'+
+          '<div class="pb-bake-card-sm">\u23f1 Bake <span class="pb-bake-val-sm">'+cache.bake.bm+' min</span></div>'+
+          '<div class="pb-bake-card-sm">\ud83c\udf21 Proof <span class="pb-bake-val-sm">'+cache.bake.pm+' min</span></div>';
+      }
+      var fc=document.getElementById('f-cups'), fg=document.getElementById('f-grams');
+      if(fc) fc.classList.toggle('on', mode==='cups');
+      if(fg) fg.classList.toggle('on', mode==='grams');
+    }
+
+    function renderProList(mode) {
+      var list = document.getElementById('pb-pro-ing-list');
+      if(!list) return;
+      list.innerHTML = '';
+      cache.results.forEach(function(ing, i) {
+        var amt  = pShown ? dispAmt(ing,mode) : (mode==='grams' ? toG(ing.amount,ing.unit,ing.id)+gUnit(ing.unit,ing.id) : frac(roundU(ing.amount,ing.unit))+' '+ing.unit);
+        var orig = pShown ? dispOrig(ing,mode) : null;
+        var dir  = ing.delta>0.005?'up':ing.delta<-0.005?'dn':'';
+        var delay = pShown ? i*55 : 0;
+        var origHTML = orig ? '<span class="pro-ing-orig-badge-sm '+dir+' '+(pShown?'show':'')+'" style="transition-delay:'+delay+'ms">'+orig+'</span>' : '';
+        list.innerHTML += '<li class="pro-ing-row-sm"><span class="pro-ing-amt-sm">'+amt+'</span><span class="pro-ing-name-sm">'+ing.name+'</span>'+origHTML+'</li>';
+      });
+
+      var bl = document.getElementById('pb-pro-bake');
+      if(bl && cache.bake) {
+        var ts2 = mode==='grams'?'+8\u00b0C':'+15\u00b0F';
+        if(pShown) {
+          bl.innerHTML = 'Bake <span class="pb-pro-bake-val-sm">'+cache.bake.bm+' min</span> &nbsp;\u00b7&nbsp; Proof <span class="pb-pro-bake-val-sm">'+cache.bake.pm+' min</span> &nbsp;\u00b7&nbsp; Oven <span class="pb-pro-bake-val-sm">'+ts2+'</span>';
+          bl.classList.add('show');
+        } else { bl.innerHTML=''; bl.classList.remove('show'); }
+      }
+
+      var status = document.getElementById('pb-pro-status');
+      if(status) status.classList.toggle('show', pShown);
+      var btn = document.getElementById('pb-pro-btn');
+      if(btn) btn.style.display = pShown ? 'none' : '';
+
+      var tempStr = mode==='grams'?Math.round((375+(cache.bake?cache.bake.tf:0)-32)*5/9)+'\u00b0C':(375+(cache.bake?cache.bake.tf:0))+'\u00b0F';
+      var bakeMin = 32+(cache.bake?cache.bake.bm:0);
+      var proofMin= 90+(cache.bake?cache.bake.pm:0);
+      var el = function(id){return document.getElementById(id);};
+      if(pShown) {
+        if(el('pro-temp'))  el('pro-temp').textContent = tempStr;
+        if(el('pro-bake'))  el('pro-bake').textContent = bakeMin+' minutes';
+        if(el('pro-proof')) el('pro-proof').textContent = proofMin+' minutes';
+      } else {
+        if(el('pro-temp'))  el('pro-temp').textContent = '375\u00b0F';
+        if(el('pro-bake'))  el('pro-bake').textContent = '32 minutes';
+        if(el('pro-proof')) el('pro-proof').textContent = '90 minutes';
+      }
+
+      var pc=document.getElementById('p-cups'), pg=document.getElementById('p-grams');
+      if(pc) pc.classList.toggle('on', mode==='cups');
+      if(pg) pg.classList.toggle('on', mode==='grams');
+    }
+
+    function populateHeader() {
+      var el = function(id){return document.getElementById(id);};
+      if(el('pb-loc-name')) el('pb-loc-name').textContent = cache.locName;
+      if(el('pb-elev'))     el('pb-elev').textContent = cache.elevFt>=100 ? cache.elevFt.toLocaleString()+' ft' : 'Sea level';
+      if(el('pb-humid'))    el('pb-humid').textContent = cache.humidity+'%';
+      if(el('pb-pro-loc'))  el('pb-pro-loc').textContent = cache.locName;
+      var atmoEl = document.getElementById('pb-pro-atmo');
+      if(atmoEl) atmoEl.textContent = '\u26f0 '+(cache.elevFt>=100?cache.elevFt.toLocaleString()+' ft':'Sea level')+' \u00b7 \ud83d\udca7 '+cache.humidity+'%';
+    }
+
+    function adjustFree() {
+      var btn = document.querySelector('.pb-free-bar-btn');
+      if(btn) { btn.textContent='Locating\u2026'; btn.disabled=true; }
+      doAdjust(function(data) {
+        if(!data) {
+          if(btn) { btn.textContent='Try again'; btn.disabled=false; }
+          return;
+        }
+        fShown = true;
+        populateHeader();
+        renderFreeList(fUnit);
+        var bar = document.getElementById('pb-free-bar');
+        var res = document.getElementById('pb-free-results');
+        if(bar&&res) {
+          bar.style.opacity='0'; bar.style.transform='translateY(-4px)';
+          setTimeout(function(){
+            bar.style.display='none';
+            res.style.display='block'; res.style.opacity='0'; res.style.transform='translateY(-6px)';
+            setTimeout(function(){res.style.opacity='1';res.style.transform='translateY(0)';},20);
+          },180);
+        }
+        // Also sync pro
+        pShown=true; renderProList(pUnit);
+      });
+    }
+
+    function adjustPro() {
+      var btn = document.getElementById('pb-pro-btn');
+      if(btn) { btn.textContent='Locating\u2026'; btn.disabled=true; }
+      doAdjust(function(data) {
+        if(!data) { if(btn){btn.textContent='Adjust for my location';btn.disabled=false;} return; }
+        pShown=true;
+        populateHeader();
+        renderProList(pUnit);
+        // Also sync free
+        fShown=true;
+        var bar=document.getElementById('pb-free-bar'), res=document.getElementById('pb-free-results');
+        if(bar&&res&&bar.style.display!=='none') {
+          renderFreeList(fUnit);
+          bar.style.opacity='0'; bar.style.transform='translateY(-4px)';
+          setTimeout(function(){
+            bar.style.display='none';
+            res.style.display='block'; res.style.opacity='0'; res.style.transform='translateY(-6px)';
+            setTimeout(function(){res.style.opacity='1';res.style.transform='translateY(0)';},20);
+          },180);
+        }
+      });
+    }
+
+    function resetFree() {
+      fShown=false; fUnit='cups';
+      var bar=document.getElementById('pb-free-bar'), res=document.getElementById('pb-free-results');
+      if(res) { res.style.opacity='0'; setTimeout(function(){ res.style.display='none'; if(bar){bar.style.display='flex';bar.style.opacity='0';bar.style.transform='translateY(-4px)';setTimeout(function(){bar.style.opacity='1';bar.style.transform='translateY(0)';var b=bar.querySelector('button');if(b){b.textContent='Adjust';b.disabled=false;}},20);} },180); }
+    }
+
+    function resetPro() {
+      pShown=false; pUnit='cups';
+      if(cache) renderProList('cups');
+      var btn=document.getElementById('pb-pro-btn');
+      if(btn){btn.textContent='Adjust for my location';btn.disabled=false;}
+    }
+
+    function setFreeUnit(mode) {
+      fUnit=mode;
+      if(fShown&&cache) renderFreeList(mode);
+      else { var fc=document.getElementById('f-cups'),fg=document.getElementById('f-grams'); if(fc)fc.classList.toggle('on',mode==='cups'); if(fg)fg.classList.toggle('on',mode==='grams'); }
+    }
+
+    function setProUnit(mode) { pUnit=mode; if(cache) renderProList(mode); else { var pc=document.getElementById('p-cups'),pg=document.getElementById('p-g
