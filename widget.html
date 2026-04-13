@@ -1,0 +1,1772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PeakBake Widget — Add Altitude-Aware Baking to Your Recipe Site</title>
+  <meta name="description" content="Add altitude-aware recipe adjustments to your food blog. One line of code. One-time purchase. $4.99." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --teal: #1D9E75;
+      --teal-dark: #0F6E56;
+      --teal-light: #E1F5EE;
+      --charcoal: #2C2C2A;
+      --card: #1a1a18;
+      --border: #3a3a38;
+      --grey: #B4B2A9;
+      --amber: #EF9F27;
+      --white: #ffffff;
+      --cream: #F5F0E8;
+      --widget-color: #1D9E75;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--charcoal);
+      color: var(--white);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 300;
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      background: rgba(44, 44, 42, 0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+
+    .nav-logo img {
+      width: 36px;
+      height: 36px;
+      object-fit: contain;
+    }
+
+    .nav-logo span {
+      font-family: 'Playfair Display', serif;
+      font-size: 20px;
+      color: var(--white);
+      letter-spacing: 1px;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: var(--grey);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 400;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover { color: var(--white); }
+    .nav-links a.active { color: var(--teal); }
+
+    .nav-cta {
+      background: var(--teal);
+      color: var(--white);
+      text-decoration: none;
+      padding: 10px 24px;
+      border-radius: 100px;
+      font-size: 14px;
+      font-weight: 500;
+      transition: background 0.2s;
+    }
+
+    .nav-cta:hover { background: var(--teal-dark); }
+
+    @media (max-width: 768px) {
+      nav { padding: 14px 20px; }
+      .nav-links { display: none; }
+    }
+
+    /* ── BUTTONS ── */
+    .btn-primary {
+      background: var(--teal);
+      color: var(--white);
+      text-decoration: none;
+      padding: 16px 36px;
+      border-radius: 100px;
+      font-size: 16px;
+      font-weight: 500;
+      transition: background 0.2s, transform 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .btn-primary:hover {
+      background: var(--teal-dark);
+      transform: translateY(-2px);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--grey);
+      text-decoration: none;
+      padding: 16px 36px;
+      border-radius: 100px;
+      font-size: 16px;
+      border: 1px solid var(--border);
+      transition: border-color 0.2s, color 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--teal);
+      color: var(--teal);
+    }
+
+    /* ── SHARED SECTION STYLES ── */
+    .section-label {
+      font-size: 12px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--teal);
+      margin-bottom: 12px;
+    }
+
+    .section-headline {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(28px, 4vw, 48px);
+      font-weight: 700;
+      margin-bottom: 16px;
+      line-height: 1.2;
+    }
+
+    .section-sub {
+      font-size: 17px;
+      color: var(--grey);
+      max-width: 560px;
+      line-height: 1.8;
+    }
+
+    .divider-line {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 0 40px;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 70vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 140px 40px 80px;
+      animation: fadeUp 0.8s ease both;
+    }
+
+    .hero-tagline {
+      font-size: 13px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--teal);
+      margin-bottom: 20px;
+    }
+
+    .hero-headline {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(36px, 6vw, 72px);
+      font-weight: 900;
+      line-height: 1.1;
+      margin-bottom: 24px;
+      max-width: 900px;
+    }
+
+    .hero-headline span { color: var(--teal); }
+
+    .hero-sub {
+      font-size: 19px;
+      color: var(--grey);
+      max-width: 600px;
+      margin: 0 auto 40px;
+      line-height: 1.8;
+    }
+
+    .hero-price-note {
+      margin-top: 20px;
+      font-size: 13px;
+      color: var(--grey);
+    }
+
+    /* ── DEMO SECTION ── */
+    .demo-section {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 80px 40px;
+    }
+
+    .demo-header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    /* Color picker controls */
+    .demo-controls {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px 32px;
+      margin-bottom: 32px;
+      display: flex;
+      align-items: center;
+      gap: 32px;
+      flex-wrap: wrap;
+    }
+
+    .demo-control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .demo-control-label {
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--grey);
+    }
+
+    .color-picker-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .color-swatch {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      border: 2px solid var(--border);
+      cursor: pointer;
+      padding: 0;
+      background: var(--widget-color);
+      transition: border-color 0.2s;
+    }
+
+    .color-swatch:hover { border-color: var(--teal); }
+
+    /* Hide native color input visually but keep it functional */
+    .color-input-native {
+      position: absolute;
+      width: 40px;
+      height: 40px;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .color-swatch-wrap {
+      position: relative;
+      width: 40px;
+      height: 40px;
+    }
+
+    .hex-input {
+      background: #111110;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--white);
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      padding: 8px 12px;
+      width: 110px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .hex-input:focus { border-color: var(--teal); }
+
+    .label-input {
+      background: #111110;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--white);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      padding: 8px 14px;
+      width: 240px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .label-input:focus { border-color: var(--teal); }
+
+    /* Color presets */
+    .color-presets {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .preset-dot {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: border-color 0.15s, transform 0.15s;
+    }
+
+    .preset-dot:hover { transform: scale(1.2); border-color: rgba(255,255,255,0.4); }
+    .preset-dot.active { border-color: var(--white); }
+
+    /* Live widget preview */
+    .widget-preview-wrap {
+      background: #FDFAF6;
+      border: 1px solid #E8DDD0;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 28px;
+    }
+
+    .widget-preview-blog-header {
+      height: 80px;
+      background: linear-gradient(135deg, #C8A882, #E8C99A, #D4A97A);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+    }
+
+    .widget-preview-body {
+      padding: 20px 24px;
+      color: #2C2015;
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    .widget-preview-cat {
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #C0622F;
+      margin-bottom: 4px;
+    }
+
+    .widget-preview-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #2C2015;
+      margin-bottom: 16px;
+    }
+
+    /* The actual widget bar */
+    .pb-widget-bar {
+      border-radius: 8px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+      transition: opacity 0.2s, transform 0.2s;
+      background: #1a1a18;
+    }
+
+    .pb-widget-logo {
+      width: 26px;
+      height: 26px;
+      border-radius: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.6rem;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
+      background: var(--widget-color);
+      transition: background 0.3s;
+    }
+
+    .pb-widget-bar-text {
+      flex: 1;
+      font-size: 0.78rem;
+      color: #B4B2A9;
+      line-height: 1.3;
+    }
+
+    .pb-widget-bar-text strong { color: #fff; font-weight: 500; }
+
+    .pb-widget-btn {
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 14px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.76rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: opacity 0.15s, background 0.3s;
+      flex-shrink: 0;
+      background: var(--widget-color);
+    }
+
+    .pb-widget-btn:hover { opacity: 0.85; }
+
+    /* Widget results panel */
+    .pb-results {
+      background: #1a1a18;
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 12px;
+      display: none;
+      animation: fadeUp 0.25s ease;
+    }
+
+    .pb-results-hdr {
+      padding: 10px 14px;
+      border-bottom: 1px solid #2e2e2b;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+    }
+
+    .pb-results-loc-label {
+      font-size: 0.6rem;
+      font-weight: 500;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: #B4B2A9;
+      margin-bottom: 2px;
+    }
+
+    .pb-results-loc-name {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .pb-results-atmo {
+      display: flex;
+      gap: 10px;
+      font-size: 0.65rem;
+      color: #B4B2A9;
+      margin-top: 3px;
+    }
+
+    .pb-results-atmo span b { color: #fff; font-weight: 500; }
+
+    .pb-results-hdr-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .pb-toggle {
+      display: flex;
+      background: #242422;
+      border: 1px solid #2e2e2b;
+      border-radius: 5px;
+      overflow: hidden;
+    }
+
+    .pb-toggle-btn {
+      background: none;
+      border: none;
+      color: #B4B2A9;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.68rem;
+      font-weight: 600;
+      padding: 4px 9px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .pb-toggle-btn.on { color: #fff; background: var(--widget-color); transition: background 0.3s; }
+
+    .pb-close {
+      background: none;
+      border: none;
+      color: #B4B2A9;
+      cursor: pointer;
+      font-size: 0.8rem;
+      padding: 2px 4px;
+      line-height: 1;
+    }
+
+    .pb-close:hover { color: #fff; }
+
+    .pb-ing-list {
+      list-style: none;
+      padding: 0 14px;
+      border-bottom: 1px solid #2e2e2b;
+    }
+
+    .pb-ing-row {
+      padding: 7px 0;
+      border-bottom: 1px solid #2e2e2b;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.76rem;
+    }
+
+    .pb-ing-row:last-child { border-bottom: none; }
+    .pb-ing-name { flex: 1; color: #B4B2A9; }
+    .pb-ing-amt { color: #fff; font-weight: 500; min-width: 72px; text-align: right; }
+
+    .pb-ing-delta {
+      font-size: 0.64rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 10px;
+      min-width: 72px;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    .pb-ing-delta.up { background: rgba(29,158,117,0.18); color: #1D9E75; }
+    .pb-ing-delta.dn { background: rgba(239,159,39,0.18); color: #EF9F27; }
+    .pb-ing-delta.no { opacity: 0; }
+
+    .pb-bake-row {
+      padding: 8px 14px;
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      border-bottom: 1px solid #2e2e2b;
+    }
+
+    .pb-bake-card {
+      background: #242422;
+      border: 1px solid #2e2e2b;
+      border-radius: 4px;
+      padding: 4px 10px;
+      font-size: 0.66rem;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .pb-bake-val { font-weight: 700; color: #EF9F27; }
+
+    .pb-footer-row {
+      padding: 8px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .pb-branding {
+      font-size: 0.64rem;
+      color: #B4B2A9;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .pb-branding-logo {
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.42rem;
+      font-weight: 700;
+      color: #fff;
+      background: var(--widget-color);
+      transition: background 0.3s;
+    }
+
+    /* Original recipe list */
+    .orig-ing-list {
+      list-style: none;
+      margin-top: 12px;
+    }
+
+    .orig-ing-list li {
+      padding: 5px 0;
+      border-bottom: 1px solid #E8DDD0;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      color: #2C2015;
+    }
+
+    .orig-ing-list li:last-child { border-bottom: none; }
+    .orig-ing-amt { font-weight: 700; min-width: 68px; display: inline-block; }
+    .orig-ing-name { color: #7A6A56; }
+    .orig-note { font-size: 0.76rem; color: #7A6A56; padding-top: 8px; border-top: 1px solid #E8DDD0; line-height: 1.6; margin-top: 4px; }
+    .orig-note strong { color: #2C2015; }
+
+    /* Embed code preview */
+    .embed-code-wrap {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .embed-code-header {
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .embed-code-title {
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--grey);
+    }
+
+    .copy-btn {
+      background: var(--teal-dark);
+      color: var(--white);
+      border: none;
+      border-radius: 6px;
+      padding: 6px 14px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .copy-btn:hover { background: var(--teal); }
+    .copy-btn.copied { background: #0F6E56; }
+
+    .embed-code-body {
+      padding: 18px 20px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      color: #B4B2A9;
+      line-height: 1.8;
+      overflow-x: auto;
+    }
+
+    .c-tag  { color: #7dd3c8; }
+    .c-attr { color: #86c5a0; }
+    .c-val  { color: #e6b87a; }
+    .c-key  { color: #f0c060; }
+
+    .embed-note {
+      padding: 12px 18px;
+      border-top: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--grey);
+    }
+
+    /* ── TAG DEMO SECTION ── */
+    .tag-section {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 80px 40px;
+    }
+
+    .tag-toggle-wrap {
+      display: flex;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      width: fit-content;
+      margin: 24px 0;
+    }
+
+    .tag-toggle-btn {
+      background: none;
+      border: none;
+      color: var(--grey);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      padding: 10px 24px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tag-toggle-btn.active {
+      background: var(--teal-dark);
+      color: var(--white);
+    }
+
+    .tag-demo-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-top: 8px;
+    }
+
+    @media (max-width: 700px) {
+      .tag-demo-grid { grid-template-columns: 1fr; }
+    }
+
+    .tag-demo-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .tag-demo-card-header {
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--border);
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--grey);
+    }
+
+    .tag-demo-card-body {
+      padding: 18px 20px;
+    }
+
+    .tag-ing-list { list-style: none; }
+
+    .tag-ing-row {
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 15px;
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .tag-ing-row:last-child { border-bottom: none; }
+
+    .tag-ing-amt { font-weight: 500; min-width: 80px; color: var(--white); }
+    .tag-ing-name { color: var(--grey); }
+
+    .tag-code {
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      color: #e6b87a;
+      background: #111110;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .tag-note {
+      margin-top: 20px;
+      padding: 16px 18px;
+      background: rgba(29,158,117,0.06);
+      border: 1px solid rgba(29,158,117,0.2);
+      border-radius: 10px;
+      font-size: 14px;
+      color: var(--grey);
+      line-height: 1.7;
+    }
+
+    .tag-note strong { color: var(--white); font-weight: 500; }
+
+    /* ── INGREDIENTS TABLE ── */
+    .ingredients-section {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 80px 40px;
+    }
+
+    .ing-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 32px;
+    }
+
+    .ing-table th {
+      text-align: left;
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--grey);
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .ing-table td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      font-size: 14px;
+    }
+
+    .ing-table tr:last-child td { border-bottom: none; }
+    .ing-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+    .ing-table td:first-child { color: var(--grey); }
+    .ing-table td:last-child {
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      color: #e6b87a;
+    }
+
+    /* ── HOW IT WORKS ── */
+    .how-section {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 80px 40px;
+    }
+
+    .how-steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+      margin-top: 48px;
+    }
+
+    .how-step {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.3s, transform 0.3s;
+    }
+
+    .how-step:hover {
+      border-color: var(--teal);
+      transform: translateY(-4px);
+    }
+
+    .how-step::before {
+      content: attr(data-step);
+      position: absolute;
+      top: -10px; right: 20px;
+      font-family: 'Playfair Display', serif;
+      font-size: 80px;
+      font-weight: 900;
+      color: rgba(29,158,117,0.06);
+      line-height: 1;
+    }
+
+    .how-step-icon { font-size: 32px; margin-bottom: 16px; }
+    .how-step-title { font-size: 18px; font-weight: 500; margin-bottom: 10px; }
+    .how-step-desc { font-size: 14px; color: var(--grey); line-height: 1.8; }
+
+    /* ── PRICING ── */
+    .pricing-section {
+      max-width: 700px;
+      margin: 0 auto;
+      padding: 80px 40px;
+      text-align: center;
+    }
+
+    .pricing-card {
+      background: var(--card);
+      border: 1px solid var(--teal-dark);
+      border-radius: 20px;
+      padding: 48px;
+      margin-top: 40px;
+    }
+
+    .pricing-amount {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(48px, 8vw, 80px);
+      font-weight: 900;
+      color: var(--white);
+      margin-bottom: 4px;
+    }
+
+    .pricing-amount span {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 20px;
+      color: var(--grey);
+      font-weight: 300;
+    }
+
+    .pricing-sub {
+      font-size: 14px;
+      color: var(--grey);
+      margin-bottom: 36px;
+    }
+
+    .pricing-features {
+      list-style: none;
+      text-align: left;
+      margin-bottom: 40px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    @media (max-width: 560px) {
+      .pricing-features { grid-template-columns: 1fr; }
+    }
+
+    .pricing-features li {
+      font-size: 14px;
+      color: var(--grey);
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      line-height: 1.5;
+    }
+
+    .pricing-features li::before {
+      content: '✓';
+      color: var(--teal);
+      font-weight: 700;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .pricing-guarantee {
+      font-size: 13px;
+      color: var(--grey);
+      margin-top: 16px;
+    }
+
+    /* ── FAQ ── */
+    .faq-section {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 80px 40px;
+    }
+
+    .faq-item {
+      border-bottom: 1px solid var(--border);
+      padding: 20px 0;
+    }
+
+    .faq-item:first-of-type { border-top: 1px solid var(--border); }
+
+    .faq-q {
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--white);
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      user-select: none;
+    }
+
+    .faq-q::after {
+      content: '+';
+      color: var(--teal);
+      font-size: 20px;
+      flex-shrink: 0;
+      transition: transform 0.2s;
+    }
+
+    .faq-item.open .faq-q::after { transform: rotate(45deg); }
+
+    .faq-a {
+      font-size: 14px;
+      color: var(--grey);
+      line-height: 1.8;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease, padding 0.3s ease;
+    }
+
+    .faq-item.open .faq-a {
+      max-height: 200px;
+      padding-top: 14px;
+    }
+
+    /* ── WAITLIST ── */
+    .waitlist-section {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 80px 40px;
+      text-align: center;
+    }
+
+    .waitlist-card {
+      background: var(--card);
+      border: 1px solid var(--teal-dark);
+      border-radius: 20px;
+      padding: 48px 40px;
+    }
+
+    .waitlist-card h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(24px, 3vw, 36px);
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+
+    .waitlist-card p {
+      font-size: 16px;
+      color: var(--grey);
+      margin-bottom: 32px;
+      line-height: 1.7;
+    }
+
+    .waitlist-form {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .waitlist-input {
+      background: #111110;
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      color: var(--white);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      padding: 14px 22px;
+      flex: 1;
+      min-width: 220px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .waitlist-input:focus { border-color: var(--teal); }
+    .waitlist-input::placeholder { color: var(--grey); }
+
+    .waitlist-success {
+      display: none;
+      color: var(--teal);
+      font-size: 15px;
+      font-weight: 500;
+      margin-top: 16px;
+    }
+
+    .waitlist-note {
+      font-size: 12px;
+      color: var(--grey);
+      margin-top: 14px;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--card);
+      border-top: 1px solid var(--border);
+      padding: 48px 40px;
+      text-align: center;
+    }
+
+    .footer-logo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .footer-logo img {
+      width: 32px;
+      height: 32px;
+      object-fit: contain;
+    }
+
+    .footer-logo span {
+      font-family: 'Playfair Display', serif;
+      font-size: 18px;
+      letter-spacing: 2px;
+    }
+
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .footer-links a {
+      color: var(--grey);
+      text-decoration: none;
+      font-size: 13px;
+      transition: color 0.2s;
+    }
+
+    .footer-links a:hover { color: var(--white); }
+
+    .footer-copy {
+      font-size: 12px;
+      color: var(--border);
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      .demo-controls { gap: 20px; }
+      .demo-section,
+      .tag-section,
+      .ingredients-section,
+      .how-section,
+      .pricing-section,
+      .faq-section,
+      .waitlist-section { padding: 60px 24px; }
+      .divider-line { margin: 0 24px; }
+      .hero { padding: 120px 24px 60px; }
+      .pricing-card { padding: 32px 24px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <a href="/" class="nav-logo">
+      <img src="Logo2048x2048.png" alt="PeakBake logo" />
+      <span>PEAKBAKE</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="/">App</a></li>
+      <li><a href="#demo">Demo</a></li>
+      <li><a href="#how-it-works">How it works</a></li>
+      <li><a href="#pricing">Pricing</a></li>
+      <li><a href="#faq">FAQ</a></li>
+    </ul>
+    <a href="#waitlist" class="nav-cta">Get notified</a>
+  </nav>
+
+  <!-- HERO -->
+  <div class="hero">
+    <p class="hero-tagline">PeakBake Widget — For Food Bloggers</p>
+    <h1 class="hero-headline">Your readers at altitude are <span>failing your recipes.</span></h1>
+    <p class="hero-sub">Every recipe you've ever published assumes sea level. Your followers in Denver, Salt Lake City, and Albuquerque have been quietly getting dense bread and flat cakes for years. One line of code fixes that.</p>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;justify-content:center;">
+      <a href="#demo" class="btn-primary">See it in action ↓</a>
+      <a href="#waitlist" class="btn-secondary">Get notified at launch</a>
+    </div>
+    <p class="hero-price-note">$4.99 one-time purchase · No subscription · Domain-locked to your site</p>
+  </div>
+
+  <hr class="divider-line" />
+
+  <!-- LIVE DEMO + COLOR PICKER -->
+  <div class="demo-section" id="demo">
+    <div class="demo-header">
+      <p class="section-label">Live demo</p>
+      <h2 class="section-headline">Try it yourself</h2>
+      <p class="section-sub">Customize the color to match your site, then click Adjust to see real atmospheric adjustments for your location.</p>
+    </div>
+
+    <!-- Controls -->
+    <div class="demo-controls">
+      <div class="demo-control-group">
+        <span class="demo-control-label">Accent color</span>
+        <div class="color-picker-wrap">
+          <div class="color-swatch-wrap">
+            <div class="color-swatch" id="colorSwatch"></div>
+            <input type="color" class="color-input-native" id="colorPickerNative" value="#1D9E75" />
+          </div>
+          <input type="text" class="hex-input" id="hexInput" value="#1D9E75" maxlength="7" placeholder="#1D9E75" />
+        </div>
+      </div>
+
+      <div class="demo-control-group">
+        <span class="demo-control-label">Presets</span>
+        <div class="color-presets">
+          <div class="preset-dot active" data-color="#1D9E75" style="background:#1D9E75" title="PeakBake teal"></div>
+          <div class="preset-dot" data-color="#8B4513" style="background:#8B4513" title="Warm brown"></div>
+          <div class="preset-dot" data-color="#C0622F" style="background:#C0622F" title="Terracotta"></div>
+          <div class="preset-dot" data-color="#2E4057" style="background:#2E4057" title="Navy"></div>
+          <div class="preset-dot" data-color="#6B4226" style="background:#6B4226" title="Espresso"></div>
+          <div class="preset-dot" data-color="#7A5C00" style="background:#7A5C00" title="Harvest gold"></div>
+          <div class="preset-dot" data-color="#1a1a18" style="background:#1a1a18;border:1px solid #3a3a38" title="Black"></div>
+        </div>
+      </div>
+
+      <div class="demo-control-group">
+        <span class="demo-control-label">Button label</span>
+        <input type="text" class="label-input" id="labelInput" value="Adjust for my location" maxlength="40" />
+      </div>
+    </div>
+
+    <!-- Widget preview inside a fake blog card -->
+    <div class="widget-preview-wrap">
+      <div class="widget-preview-blog-header">🍞</div>
+      <div class="widget-preview-body">
+        <div class="widget-preview-cat">Bread Baking</div>
+        <div class="widget-preview-title">Sally's Sandwich Bread</div>
+
+        <!-- Widget bar -->
+        <div class="pb-widget-bar" id="wBar">
+          <div class="pb-widget-logo" id="wLogo">PB</div>
+          <div class="pb-widget-bar-text"><strong>Not at sea level?</strong> Adjust this recipe for your location.</div>
+          <button class="pb-widget-btn" id="wBtn" onclick="demoAdjust()">Adjust for my location</button>
+        </div>
+
+        <!-- Results panel -->
+        <div class="pb-results" id="wResults">
+          <div class="pb-results-hdr">
+            <div>
+              <div class="pb-results-loc-label">Adjusted for</div>
+              <div class="pb-results-loc-name" id="wLocName">—</div>
+              <div class="pb-results-atmo">
+                <span>⛰ <b id="wElev">—</b></span>
+                <span>💧 <b id="wHumid">—</b></span>
+              </div>
+            </div>
+            <div class="pb-results-hdr-right">
+              <div class="pb-toggle">
+                <button class="pb-toggle-btn on" id="wCups" onclick="setDemoUnit('cups')">cups</button>
+                <button class="pb-toggle-btn" id="wGrams" onclick="setDemoUnit('grams')">g</button>
+              </div>
+              <button class="pb-close" onclick="demoReset()">✕</button>
+            </div>
+          </div>
+          <ul class="pb-ing-list" id="wIngList"></ul>
+          <div class="pb-bake-row" id="wBakeRow"></div>
+          <div class="pb-footer-row">
+            <div class="pb-branding">
+              <span class="pb-branding-logo" id="wBrandLogo">PB</span>
+              Adjusted by PeakBake
+            </div>
+          </div>
+        </div>
+
+        <!-- Original recipe -->
+        <ul class="orig-ing-list">
+          <li><span class="orig-ing-amt">3½ cups</span><span class="orig-ing-name">bread flour</span></li>
+          <li><span class="orig-ing-amt">1¼ cups</span><span class="orig-ing-name">warm water</span></li>
+          <li><span class="orig-ing-amt">2¼ tsp</span><span class="orig-ing-name">active dry yeast</span></li>
+          <li><span class="orig-ing-amt">1 tbsp</span><span class="orig-ing-name">sugar</span></li>
+          <li><span class="orig-ing-amt">1½ tsp</span><span class="orig-ing-name">sea salt</span></li>
+        </ul>
+        <div class="orig-note">Proof <strong>90 min</strong> · Bake at <strong>375°F</strong> for <strong>32 min</strong></div>
+      </div>
+    </div>
+
+    <!-- Auto-generated embed code -->
+    <div class="embed-code-wrap">
+      <div class="embed-code-header">
+        <span class="embed-code-title">Your embed code</span>
+        <button class="copy-btn" id="copyBtn" onclick="copyCode()">Copy code</button>
+      </div>
+      <div class="embed-code-body" id="embedCodeDisplay">
+        <span class="c-tag">&lt;style&gt;</span>.pb-tag { display: none }<span class="c-tag">&lt;/style&gt;</span><br>
+        <span class="c-tag">&lt;script</span><br>
+        &nbsp;&nbsp;<span class="c-attr">src</span>=<span class="c-val">"https://cdn.peakbake.com/widget.js"</span><br>
+        &nbsp;&nbsp;<span class="c-attr">data-key</span>=<span class="c-key">"YOUR-KEY-HERE"</span><br>
+        &nbsp;&nbsp;<span class="c-attr">data-color</span>=<span class="c-val" id="codeColor">"#1D9E75"</span><br>
+        &nbsp;&nbsp;<span class="c-attr">data-label</span>=<span class="c-val" id="codeLabel">"Adjust for my location"</span><span class="c-tag">&gt;&lt;/script&gt;</span>
+      </div>
+      <div class="embed-note">Replace <code style="color:#f0c060">YOUR-KEY-HERE</code> with the key from your purchase confirmation email.</div>
+    </div>
+  </div>
+
+  <hr class="divider-line" />
+
+  <!-- TAG SYSTEM DEMO -->
+  <div class="tag-section" id="tags">
+    <p class="section-label">Tag system</p>
+    <h2 class="section-headline">How to mark up your ingredients</h2>
+    <p class="section-sub">Add simple shortcodes to your ingredient list. Your readers never see them. PeakBake reads them and applies the right adjustments automatically.</p>
+
+    <div class="tag-toggle-wrap">
+      <button class="tag-toggle-btn active" id="readerViewBtn" onclick="setTagView('reader')">👁 Reader view</button>
+      <button class="tag-toggle-btn" id="bloggerViewBtn" onclick="setTagView('blogger')">🏷 Blogger view</button>
+    </div>
+
+    <div class="tag-demo-grid">
+      <!-- Before -->
+      <div class="tag-demo-card">
+        <div class="tag-demo-card-header">Your recipe post</div>
+        <div class="tag-demo-card-body">
+          <ul class="tag-ing-list" id="tagIngList">
+            <li class="tag-ing-row"><span class="tag-ing-amt">3½ cups</span><span class="tag-ing-name">bread flour</span></li>
+            <li class="tag-ing-row"><span class="tag-ing-amt">1¼ cups</span><span class="tag-ing-name">warm water</span></li>
+            <li class="tag-ing-row"><span class="tag-ing-amt">2¼ tsp</span><span class="tag-ing-name">active dry yeast</span></li>
+            <li class="tag-ing-row"><span class="tag-ing-amt">1 tbsp</span><span class="tag-ing-name">sugar</span></li>
+            <li class="tag-ing-row"><span class="tag-ing-amt">1½ tsp</span><span class="tag-ing-name">sea salt</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- After / explanation -->
+      <div class="tag-demo-card">
+        <div class="tag-demo-card-header">What PeakBake reads</div>
+        <div class="tag-demo-card-body">
+          <ul class="tag-ing-list">
+            <li class="tag-ing-row"><span class="tag-code">[pb:flour|3.5|cups]</span></li>
+            <li class="tag-ing-row"><span class="tag-code">[pb:water|1.25|cups]</span></li>
+            <li class="tag-ing-row"><span class="tag-code">[pb:yeast|2.25|tsp]</span></li>
+            <li class="tag-ing-row"><span class="tag-code">[pb:sugar|1|tbsp]</span></li>
+            <li class="tag-ing-row"><span class="tag-code">[pb:salt|1.5|tsp]</span></li>
+          </ul>
+          <div class="tag-note">
+            <strong>Format:</strong> [pb:ingredient-id|amount|unit]<br><br>
+            Tags sit alongside your ingredient text. One CSS line hides them from readers. The tag generator tool (included with purchase) creates these for you in seconds.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider-line" />
+
+  <!-- SUPPORTED INGREDIENTS -->
+  <div class="ingredients-section">
+    <p class="section-label">Supported ingredients</p>
+    <h2 class="section-headline">Every key baking ingredient covered</h2>
+    <p class="section-sub">PeakBake adjusts the ingredients that actually matter at altitude. Chocolate chips don't need adjusting. Baking soda does.</p>
+
+    <table class="ing-table">
+      <thead>
+        <tr>
+          <th>Ingredient</th>
+          <th>Tag ID</th>
+          <th>Adjustment type</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>All-purpose flour, bread flour, cake flour</td><td>flour</td><td>Humidity adjustment</td></tr>
+        <tr><td>Warm water</td><td>water</td><td>Altitude liquid increase</td></tr>
+        <tr><td>Whole milk, warm milk</td><td>milk</td><td>Altitude liquid increase</td></tr>
+        <tr><td>Buttermilk</td><td>buttermilk</td><td>Altitude liquid increase</td></tr>
+        <tr><td>Heavy cream</td><td>cream</td><td>Altitude liquid increase</td></tr>
+        <tr><td>Active dry yeast, instant yeast</td><td>yeast</td><td>Altitude leavening reduction</td></tr>
+        <tr><td>Baking powder</td><td>bakingPowder</td><td>Altitude leavening reduction</td></tr>
+        <tr><td>Baking soda</td><td>bakingSoda</td><td>Altitude leavening reduction</td></tr>
+        <tr><td>Sugar, granulated sugar</td><td>sugar</td><td>No adjustment</td></tr>
+        <tr><td>Brown sugar</td><td>brownSugar</td><td>No adjustment</td></tr>
+        <tr><td>Honey</td><td>honey</td><td>No adjustment</td></tr>
+        <tr><td>Molasses</td><td>molasses</td><td>No adjustment</td></tr>
+        <tr><td>Butter</td><td>butter</td><td>No adjustment</td></tr>
+        <tr><td>Vegetable oil, olive oil</td><td>oil</td><td>No adjustment</td></tr>
+        <tr><td>Eggs</td><td>eggs</td><td>No adjustment</td></tr>
+        <tr><td>Salt</td><td>salt</td><td>No adjustment</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <hr class="divider-line" />
+
+  <!-- HOW IT WORKS -->
+  <div class="how-section" id="how-it-works">
+    <p class="section-label">How it works</p>
+    <h2 class="section-headline">Three steps, then it runs itself</h2>
+    <div class="how-steps">
+      <div class="how-step" data-step="1">
+        <div class="how-step-icon">📋</div>
+        <h3 class="how-step-title">Add two lines to your header</h3>
+        <p class="how-step-desc">One CSS line hides the tags from readers. One script tag loads the widget with your key and color. Works on WordPress, Squarespace, Ghost, and any site where you can edit the header.</p>
+      </div>
+      <div class="how-step" data-step="2">
+        <div class="how-step-icon">🏷</div>
+        <h3 class="how-step-title">Tag your ingredients</h3>
+        <p class="how-step-desc">Use the included tag generator to create shortcodes for your ingredient list. Paste them alongside your amounts. Your readers see the original recipe. PeakBake reads the tags invisibly.</p>
+      </div>
+      <div class="how-step" data-step="3">
+        <div class="how-step-icon">✓</div>
+        <h3 class="how-step-title">Your readers adjust with one click</h3>
+        <p class="how-step-desc">A reader in Denver clicks Adjust. Their GPS fires, Open-Meteo pulls live atmospheric data, and the ingredient amounts update instantly. Bake time, temp, and proof adjustments appear. All automatic.</p>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider-line" />
+
+  <!-- PRICING -->
+  <div class="pricing-section" id="pricing">
+    <p class="section-label">Pricing</p>
+    <h2 class="section-headline">Simple. One time. Yours forever.</h2>
+
+    <div class="pricing-card">
+      <div class="pricing-amount">$4.99 <span>one-time</span></div>
+      <p class="pricing-sub">No subscription. No renewal. No monthly bill.</p>
+      <ul class="pricing-features">
+        <li>Real GPS and atmospheric data</li>
+        <li>Customizable accent color</li>
+        <li>Custom button label</li>
+        <li>Tag generator tool included</li>
+        <li>Install guide PDF included</li>
+        <li>Setup manual PDF included</li>
+        <li>Works on WordPress, Squarespace, Ghost</li>
+        <li>Domain-locked to your site</li>
+        <li>Bake time, temp, proof adjustments</li>
+        <li>Cups and grams toggle for readers</li>
+      </ul>
+      <a href="#waitlist" class="btn-primary" style="width:100%;justify-content:center;font-size:18px;padding:18px;">Get notified at launch</a>
+      <p class="pricing-guarantee">30-day money-back guarantee. If it doesn't work on your site, email us and we'll refund you the same day.</p>
+    </div>
+  </div>
+
+  <hr class="divider-line" />
+
+  <!-- FAQ -->
+  <div class="faq-section" id="faq">
+    <p class="section-label">Questions</p>
+    <h2 class="section-headline">Frequently asked</h2>
+
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">Does it work on WordPress?</div>
+      <div class="faq-a">Yes. Paste the two lines into your theme header or use a plugin like Insert Headers and Footers. Then add tags to your recipe posts using the tag generator. Full WordPress walkthrough included in the setup manual.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">What does domain-locked mean?</div>
+      <div class="faq-a">Your key only works on the domain you register at purchase. If someone else copies your embed code, it won't work on their site. Your purchase is tied to yourblog.com, not to a generic key that anyone can use.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">Can I use it on multiple sites?</div>
+      <div class="faq-a">Each purchase covers one domain. If you run multiple recipe sites, you'd purchase once for each. At $4.99 each that's still less than a monthly subscription for most tools.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">What if I change my domain?</div>
+      <div class="faq-a">Email support@peakbake.com with your old and new domain. We'll update your registration manually. No new purchase needed.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">Do I need to tag every recipe?</div>
+      <div class="faq-a">Only recipes you tag will show the Adjust button. You can start with your most popular recipes and add more over time. The tag generator makes it quick once you get the hang of it.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">Do my readers need to install anything?</div>
+      <div class="faq-a">Nothing. The widget runs entirely in the browser. Readers click Adjust, grant location permission once, and see their adjusted recipe. No app, no account, no download.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">What if it doesn't work on my site?</div>
+      <div class="faq-a">Email us within 30 days for a full refund, no questions asked. We'd also like to know what went wrong so we can fix it for others.</div>
+    </div>
+  </div>
+
+  <hr class="divider-line" />
+
+  <!-- WAITLIST -->
+  <div class="waitlist-section" id="waitlist">
+    <div class="waitlist-card">
+      <p class="section-label" style="text-align:center">Coming soon</p>
+      <h2>Be the first to know when PeakBake Widget launches.</h2>
+      <p>We'll send you one email when it's ready. No spam, no newsletters, just a heads up that it's live.</p>
+      <div class="waitlist-form">
+        <input type="email" class="waitlist-input" id="waitlistEmail" placeholder="your@email.com" />
+        <button class="btn-primary" onclick="submitWaitlist()">Notify me</button>
+      </div>
+      <div class="waitlist-success" id="waitlistSuccess">✓ You're on the list. We'll be in touch.</div>
+      <p class="waitlist-note">No spam. One email at launch. Unsubscribe anytime.</p>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-logo">
+      <img src="Logo2048x2048.png" alt="PeakBake" />
+      <span>PEAKBAKE</span>
+    </div>
+    <div class="footer-links">
+      <a href="/">App</a>
+      <a href="/widget">Widget</a>
+      <a href="/#download">Download</a>
+      <a href="/#support">Support</a>
+      <a href="/#privacy">Privacy</a>
+      <a href="https://hatchappsllc.com" target="_blank" rel="noopener">Hatch Apps LLC</a>
+    </div>
+    <p class="footer-copy">&copy; 2026 Hatch Apps LLC. All rights reserved.</p>
+  </footer>
+
+  <script>
+  // ── COLOR PICKER ──────────────────────────────────────────────
+  var currentColor = '#1D9E75';
+  var currentUnit  = 'cups';
+  var demoCache    = null;
+  var demoShown    = false;
+
+  function isValidHex(h) { return /^#[0-9A-Fa-f]{6}$/.test(h); }
+
+  function applyColor(hex) {
+    if (!isValidHex(hex)) return;
+    currentColor = hex;
+    document.getElementById('colorSwatch').style.background = hex;
+    document.getElementById('colorPickerNative').value = hex;
+    document.getElementById('hexInput').value = hex;
+    document.getElementById('codeColor').textContent = '"' + hex + '"';
+    // Update widget elements
+    document.getElementById('wLogo').style.background = hex;
+    document.getElementById('wBtn').style.background  = hex;
+    document.getElementById('wBrandLogo').style.background = hex;
+    // Toggle active state
+    var onBtns = document.querySelectorAll('.pb-toggle-btn.on');
+    onBtns.forEach(function(b){ b.style.background = hex; });
+    // Update preset active state
+    document.querySelectorAll('.preset-dot').forEach(function(d){
+      d.classList.toggle('active', d.dataset.color === hex);
+    });
+    if (demoShown && demoCache) renderDemoList(currentUnit);
+  }
+
+  // Native color input
+  document.getElementById('colorPickerNative').addEventListener('input', function(){
+    applyColor(this.value);
+  });
+
+  // Hex text input
+  document.getElementById('hexInput').addEventListener('input', function(){
+    var v = this.value;
+    if (v[0] !== '#') v = '#' + v;
+    if (isValidHex(v)) applyColor(v);
+  });
+
+  // Click on swatch triggers native picker
+  document.getElementById('colorSwatch').addEventListener('click', function(){
+    document.getElementById('colorPickerNative').click();
+  });
+
+  // Preset dots
+  document.querySelectorAll('.preset-dot').forEach(function(dot){
+    dot.addEventListener('click', function(){
+      applyColor(this.dataset.color);
+    });
+  });
+
+  // Button label
+  document.getElementById('labelInput').addEventListener('input', function(){
+    document.getElementById('wBtn').textContent = this.value || 'Adjust for my location';
+    document.getElementById('codeLabel').textContent = '"' + (this.value || 'Adjust for my location') + '"';
+  });
+
+  // Copy embed code
+  function copyCode() {
+    var hex = currentColor;
+    var label = document.getElementById('labelInput').value || 'Adjust for my location';
+    var code = '<style>.pb-tag { display: none }</style>\n<script\n  src="https://cdn.peakbake.com/widget.js"\n  data-key="YOUR-KEY-HERE"\n  data-color="' + hex + '"\n  data-label="' + label + '"><\/script>';
+    navigator.clipboard.writeText(code).then(function(){
+      var btn = document.getElementById('copyBtn');
+      btn.textContent = 'Copied!';
+      btn.classList.add('copied');
+      setTimeout(function(){ btn.textContent = 'Copy code'; btn.classList.remove('copied'); }, 2000);
+    });
+  }
+
+  // ── DEMO WIDGET LOGIC ─────────────────────────────────────────
+  var FRACS = {0.125:'⅛',0.25:'¼',0.333:'⅓',0.375:'⅜',0.5:'½',0.625:'⅝',0.667:'⅔',0.75:'¾',0.875:'⅞'};
+  var GRAM  = { flour:120, water:237, milk:244, buttermilk:245, cream:238,
+                yeast:3.2, bakingPowder:4.6, bakingSoda:6,
+                sugar:200, brownSugar:220, honey:340, molasses:340,
+                butter:227, oil:218, eggs:50, salt:6 };
+  var LIQUID_IDS = { water:1, milk:1, buttermilk:1, cream:1 };
+  var LEAVENING_IDS = { yeast:1, bakingPowder:1, bakingSoda:1 };
+  var FLOUR_IDS = { flour:1 };
+
+  var INGS = [
+    {id:'flour', amount:3.5,  unit:'cups', name:'Bread flour'},
+    {id:'water', amount:1.25, unit:'cups', name:'Warm water'},
+    {id:'yeast', amount:2.25, unit:'tsp',  name:'Active dry yeast'},
+    {id:'sugar', amount:1,    unit:'tbsp', name:'Sugar'},
+    {id:'salt',  amount:1.5,  unit:'tsp',  name:'Sea salt'},
+  ];
+
+  function frac(v) {
+    var w=Math.floor(v), f=Math.round((v-w)*1000)/1000, fs=FRACS[f]||(f>0?String(f):'');
+    return w===0?(fs||'0'):(fs?w+fs:String(w));
+  }
+  function roundU(v,u) {
+    if(u==='cups') return Math.round(v*4)/4;
+    if(u==='tbsp') return Math.round(v*2)/2;
+    if(u==='tsp')  return Math.round(v*4)/4;
+    return Math.round(v*100)/100;
+  }
+  function toG(a,u,id) {
+    var g = GRAM[id]||120;
+    if(u==='cups') return Math.round(a*g);
+    if(u==='tsp')  return Math.round(a*(GRAM[id]||4));
+    if(u==='tbsp') return Math.round(a*(GRAM[id]||14));
+    return Math.round(a);
+  }
+  function gUnit(u,id) { return (u==='cups'&&LIQUID_IDS[id])?'ml':'g'; }
+
+  function calcAdj(ing, elevFt, humidity) {
+    var adj=ing.amount, delta=0, alt=null;
+    if(elevFt>7000)      alt={lm:0.50,lpc:0.25, tf:25,bm:-8, pm:-20};
+    else if(elevFt>5000) alt={lm:0.65,lpc:0.125,tf:15,bm:-6, pm:-15};
+    else if(elevFt>3500) alt={lm:0.75,lpc:0.125,tf:0, bm:-4, pm:-10};
+    if(alt) {
+      if(LEAVENING_IDS[ing.id]){adj=Math.max(ing.amount*alt.lm,ing.amount*0.25);delta=adj-ing.amount;}
+      if(LIQUID_IDS[ing.id]){var ex=ing.amount*alt.lpc;adj=ing.amount+ex;delta=ex;}
+    }
+    if(humidity>70){if(FLOUR_IDS[ing.id]){adj+=0.125;delta+=0.125;}if(LIQUID_IDS[ing.id]){adj-=0.125;delta-=0.125;}}
+    else if(humidity<30){if(FLOUR_IDS[ing.id]){adj-=0.125;delta-=0.125;}if(LIQUID_IDS[ing.id]){adj+=0.125;delta+=0.125;}}
+    return {id:ing.id,amount:ing.amount,unit:ing.unit,name:ing.name,adj:adj,delta:delta,alt:alt};
+  }
+
+  function dispAmt(ing,mode) {
+    if(mode==='grams') return toG(ing.adj,ing.unit,ing.id)+gUnit(ing.unit,ing.id);
+    return frac(roundU(ing.adj,ing.unit))+' '+ing.unit;
+  }
+
+  function dispOrig(ing,mode) {
+    if(Math.abs(ing.delta)<0.005) return null;
+    var a=dispAmt(ing,mode);
+    var o=mode==='grams'?toG(ing.amount,ing.unit,ing.id)+gUnit(ing.unit,ing.id):frac(roundU(ing.amount,ing.unit))+' '+ing.unit;
+    if(a===o) return null;
+    return (ing.delta>0?'▲':'▼')+' was '+o;
+  }
+
+  function renderDemoList(mode) {
+    var list=document.getElementById('wIngList');
+    if(!list||!demoCache) return;
+    list.innerHTML='';
+    demoCache.results.forEach(function(ing){
+      var orig=dispOrig(ing,mode);
+      var dir=ing.delta>0.005?'up':ing.delta<-0.005?'dn':'no';
+      list.innerHTML+='<li class="pb-ing-row"><span class="pb-ing-name">'+ing.name+'</span><span class="pb-ing-amt">'+dispAmt(ing,mode)+'</span><span class="pb-ing-delta '+dir+'">'+(orig||'')+'</span></li>';
+    });
+    var bake=document.getElementById('wBakeRow');
+    if(bake&&demoCache.bake){
+      var ts=mode==='grams'?'+8°C':'+15°F';
+      bake.innerHTML=
+        '<div class="pb-bake-card">🔥 Oven <span class="pb-bake-val">'+ts+'</span></div>'+
+        '<div class="pb-bake-card">⏱ Bake <span class="pb-bake-val">'+demoCache.bake.bm+' min</span></div>'+
+        '<div class="pb-bake-card">🌡 Proof <span class="pb-bake-val">'+demoCache.bake.pm+' min</span></div>';
+    }
+    var cups=document.getElementById('wCups'), grams=document.getElementById('wGrams');
+    if(cups)  { cups.classList.toggle('on',mode==='cups');  cups.style.background  = mode==='cups'  ? currentColor : ''; }
+    if(grams) { grams.classList.toggle('on',mode==='grams'); grams.style.background = mode==='grams' ? currentColor : ''; }
+  }
+
+  function setDemoUnit(mode) {
+    currentUnit=mode;
+    if(demoShown&&demoCache) renderDemoList(mode);
+  }
+
+  function reverseGeocode(lat,lon) {
+    return fetch('https://nominatim.openstreetmap.org/reverse?lat='+lat+'&lon='+lon+'&format=json',{headers:{'Accept-Language':'en'}})
+      .then(function(r){return r.json();})
+      .then(function(d){
+        var cc=((d.address&&d.address.country_code)||'us').toUpperCase();
+        var city=d.address&&(d.address.city||d.address.town||d.address.village||d.address.county)||'';
+        var state=d.address&&d.address.state_code||'';
+        var ctry=d.address&&d.address.country||'';
+        var name=cc==='US'&&city&&state?city+', '+state:city?city+', '+ctry:lat.toFixed(2)+'°, '+lon.toFixed(2)+'°';
+        return {name:name};
+      })
+      .catch(function(){return {name:lat.toFixed(2)+'°, '+lon.toFixed(2)+'°'};});
+  }
+
+  function fetchAtmo(lat,lon) {
+    return Promise.all([
+      fetch('https://api.open-meteo.com/v1/elevation?latitude='+lat+'&longitude='+lon),
+      fetch('https://api.open-meteo.com/v1/forecast?latitude='+lat+'&longitude='+lon+'&current=relative_humidity_2m,surface_pressure')
+    ]).then(function(rs){return Promise.all(rs.map(function(r){return r.json();}));})
+      .then(function(data){
+        var elevFt=Math.round(((data[0].elevation&&data[0].elevation[0])||0)*3.28084);
+        var humidity=(data[1].current&&data[1].current.relative_humidity_2m)||50;
+        return {elevFt:elevFt,humidity:humidity};
+      });
+  }
+
+  function demoAdjust() {
+    if(demoCache) { showResults(); return; }
+    var btn=document.getElementById('wBtn');
+    btn.textContent='Locating…'; btn.disabled=true;
+    if(!navigator.geolocation){btn.textContent='Location unavailable';return;}
+    navigator.geolocation.getCurrentPosition(function(pos){
+      var lat=pos.coords.latitude, lon=pos.coords.longitude;
+      Promise.all([fetchAtmo(lat,lon),reverseGeocode(lat,lon)])
+        .then(function(res){
+          var atmo=res[0], geo=res[1];
+          var results=INGS.map(function(ing){return calcAdj(ing,atmo.elevFt,atmo.humidity);});
+          var alt=results[0].alt;
+          demoCache={results:results,bake:alt?{bm:alt.bm,pm:alt.pm}:null,locName:geo.name,elevFt:atmo.elevFt,humidity:atmo.humidity};
+          showResults();
+        })
+        .catch(function(){btn.textContent='Try again';btn.disabled=false;});
+    },function(){btn.textContent='Try again';btn.disabled=false;},{timeout:10000});
+  }
+
+  function showResults() {
+    demoShown=true;
+    var bar=document.getElementById('wBar'), res=document.getElementById('wResults');
+    document.getElementById('wLocName').textContent=demoCache.locName;
+    document.getElementById('wElev').textContent=demoCache.elevFt>=100?demoCache.elevFt.toLocaleString()+' ft':'Sea level';
+    document.getElementById('wHumid').textContent=demoCache.humidity+'%';
+    renderDemoList(currentUnit);
+    bar.style.opacity='0';
+    setTimeout(function(){
+      bar.style.display='none';
+      res.style.display='block';
+    },180);
+  }
+
+  function demoReset() {
+    demoShown=false;
+    var bar=document.getElementById('wBar'), res=document.getElementById('wResults');
+    res.style.display='none';
+    bar.style.display='flex'; bar.style.opacity='1';
+    var btn=document.getElementById('wBtn');
+    btn.textContent=document.getElementById('labelInput').value||'Adjust for my location';
+    btn.disabled=false;
+  }
+
+  // ── TAG VIEW TOGGLE ───────────────────────────────────────────
+  var tagData = [
+    {tag:'[pb:flour|3.5|cups]',   amt:'3½ cups', name:'bread flour'},
+    {tag:'[pb:water|1.25|cups]',  amt:'1¼ cups', name:'warm water'},
+    {tag:'[pb:yeast|2.25|tsp]',   amt:'2¼ tsp',  name:'active dry yeast'},
+    {tag:'[pb:sugar|1|tbsp]',     amt:'1 tbsp',   name:'sugar'},
+    {tag:'[pb:salt|1.5|tsp]',     amt:'1½ tsp',   name:'sea salt'},
+  ];
+
+  function setTagView(view) {
+    var list=document.getElementById('tagIngList');
+    var rBtn=document.getElementById('readerViewBtn');
+    var bBtn=document.getElementById('bloggerViewBtn');
+    rBtn.classList.toggle('active', view==='reader');
+    bBtn.classList.toggle('active', view==='blogger');
+    list.innerHTML='';
+    tagData.forEach(function(d){
+      if(view==='reader') {
+        list.innerHTML+='<li class="tag-ing-row"><span class="tag-ing-amt">'+d.amt+'</span><span class="tag-ing-name">'+d.name+'</span></li>';
+      } else {
+        list.innerHTML+='<li class="tag-ing-row"><span class="tag-code">'+d.tag+'</span><span class="tag-ing-name" style="margin-left:8px">'+d.name+'</span></li>';
+      }
+    });
+  }
+
+  // ── FAQ ───────────────────────────────────────────────────────
+  function toggleFaq(el) {
+    var item=el.parentElement;
+    var wasOpen=item.classList.contains('open');
+    document.querySelectorAll('.faq-item').forEach(function(i){i.classList.remove('open');});
+    if(!wasOpen) item.classList.add('open');
+  }
+
+  // ── WAITLIST ──────────────────────────────────────────────────
+  function submitWaitlist() {
+    var email=document.getElementById('waitlistEmail').value.trim();
+    if(!email||!email.includes('@')) {
+      document.getElementById('waitlistEmail').focus();
+      return;
+    }
+    // In production this POSTs to your email capture endpoint
+    // For now we just show the success message
+    document.getElementById('waitlistSuccess').style.display='block';
+    document.getElementById('waitlistEmail').style.display='none';
+    document.querySelector('.waitlist-form button').style.display='none';
+  }
+  </script>
+
+</body>
+</html>

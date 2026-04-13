@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PeakBake, Weather-Aware Baking</title>
+  <meta name="description" content="PeakBake adjusts our 100 classic recipes for altitude, humidity, and barometric pressure. Bake right, wherever you are." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --teal: #1D9E75; --teal-dark: #0F6E56; --teal-light: #E1F5EE;
+      --charcoal: #2C2C2A; --card: #1a1a18; --border: #3a3a38;
+      --grey: #B4B2A9; --amber: #EF9F27; --white: #ffffff; --cream: #F5F0E8;
+    }
+    html { scroll-behavior: smooth; }
+    body { background: var(--charcoal); color: var(--white); font-family: 'DM Sans', sans-serif; font-weight: 300; line-height: 1.7; overflow-x: hidden; }
+
+    /* NAV */
+    nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(44,44,42,0.92); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); padding: 14px 40px; display: flex; align-items: center; justify-content: space-between; }
+    .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .nav-logo img { width: 36px; height: 36px; object-fit: contain; }
+    .nav-logo span { font-family: 'Playfair Display', serif; font-size: 20px; color: var(--white); letter-spacing: 1px; }
+    .nav-links { display: flex; align-items: center; gap: 28px; list-style: none; }
+    .nav-links a { color: var(--grey); text-decoration: none; font-size: 14px; font-weight: 400; transition: color 0.2s; }
+    .nav-links a:hover { color: var(--white); }
+    .nav-cta { background: var(--teal); color: var(--white); text-decoration: none; padding: 10px 24px; border-radius: 100px; font-size: 14px; font-weight: 500; transition: background 0.2s; }
+    .nav-cta:hover { background: var(--teal-dark); }
+
+    /* BUTTONS */
+    .btn-primary { background: var(--teal); color: var(--white); text-decoration: none; padding: 16px 36px; border-radius: 100px; font-size: 16px; font-weight: 500; transition: background 0.2s, transform 0.2s; display: inline-flex; align-items: center; gap: 8px; }
+    .btn-primary:hover { background: var(--teal-dark); transform: translateY(-2px); }
+    .btn-secondary { background: transparent; color: var(--grey); text-decoration: none; padding: 16px 36px; border-radius: 100px; font-size: 16px; border: 1px solid var(--border); transition: border-color 0.2s, color 0.2s; }
+    .btn-secondary:hover { border-color: var(--teal); color: var(--teal); }
+
+    /* HERO */
+    .hero-centered { padding: 120px 60px 0; max-width: 1200px; margin: 0 auto; }
+    .hero-top { display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: 60px; animation: fadeUp 0.8s ease both; }
+    .hero-left-text { display: flex; flex-direction: column; align-items: flex-start; text-align: left; }
+    .hero-right-brand { display: flex; flex-direction: column; align-items: flex-start; }
+    .hero-brand { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+    .hero-logo-sm { width: 48px; height: 48px; object-fit: contain; }
+    .hero-brand-name { font-family: 'Playfair Display', serif; font-size: 22px; letter-spacing: 2px; color: var(--white); }
+    .hero-screenshots { display: flex; align-items: flex-end; justify-content: center; gap: 12px; margin-top: 30px; padding-bottom: 60px; }
+    .screenshot-frame { flex: 1; max-width: 200px; border-radius: 28px; overflow: hidden; border: 2px solid var(--border); box-shadow: 0 20px 48px rgba(0,0,0,0.5); transition: transform 0.3s; }
+    .screenshot-frame:hover { transform: translateY(-8px); }
+    .screenshot-tall { flex: 1.1; }
+    .screenshot-frame img { width: 100%; display: block; }
+    .hero-tagline { font-size: 13px; letter-spacing: 3px; text-transform: uppercase; color: var(--teal); margin-bottom: 16px; }
+    .hero-headline { font-family: 'Playfair Display', serif; font-size: clamp(32px,4.5vw,58px); font-weight: 900; line-height: 1.1; margin-bottom: 24px; }
+    .hero-headline span { color: var(--teal); }
+    .hero-sub { font-size: 18px; color: var(--grey); max-width: 540px; margin: 0 0 40px; }
+    .hero-buttons { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; }
+    .hero-price { margin-top: 20px; font-size: 13px; color: var(--grey); }
+
+    /* WEATHER STRIP */
+    .weather-strip { background: var(--card); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 14px 40px; display: flex; align-items: center; justify-content: center; gap: 32px; flex-wrap: wrap; font-size: 14px; color: var(--grey); }
+    .weather-strip span { display: flex; align-items: center; gap: 6px; }
+    .weather-strip .divider { color: var(--border); }
+
+    /* SECTIONS */
+    section { max-width: 1100px; margin: 0 auto; padding: 100px 40px; }
+    .section-label { font-size: 12px; letter-spacing: 3px; text-transform: uppercase; color: var(--teal); margin-bottom: 12px; }
+    .section-headline { font-family: 'Playfair Display', serif; font-size: clamp(28px,4vw,48px); font-weight: 700; margin-bottom: 16px; line-height: 1.2; }
+    .section-sub { font-size: 17px; color: var(--grey); max-width: 560px; line-height: 1.8; }
+
+    /* HOW IT WORKS */
+    .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px,1fr)); gap: 24px; margin-top: 60px; }
+    .step-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 32px; position: relative; overflow: hidden; transition: border-color 0.3s, transform 0.3s; }
+    .step-card:hover { border-color: var(--teal); transform: translateY(-4px); }
+    .step-card::before { content: attr(data-step); position: absolute; top: -10px; right: 20px; font-family: 'Playfair Display', serif; font-size: 80px; font-weight: 900; color: rgba(29,158,117,0.06); line-height: 1; }
+    .step-icon { font-size: 32px; margin-bottom: 16px; }
+    .step-title { font-size: 18px; font-weight: 500; margin-bottom: 10px; }
+    .step-desc { font-size: 14px; color: var(--grey); line-height: 1.8; }
+
+    /* FEATURES */
+    .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px,1fr)); gap: 20px; margin-top: 60px; }
+    .feature-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 28px; transition: border-color 0.3s; }
+    .feature-card:hover { border-color: var(--teal-dark); }
+    .feature-icon { width: 44px; height: 44px; background: rgba(29,158,117,0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 22px; margin-bottom: 16px; }
+    .feature-title { font-size: 16px; font-weight: 500; margin-bottom: 8px; }
+    .feature-desc { font-size: 13px; color: var(--grey); line-height: 1.7; }
+
+    /* DIVIDER */
+    .divider-line { border: none; border-top: 1px solid var(--border); margin: 0 40px; }
+
+    /* CALLOUT */
+    .callout { background: var(--card); border: 1px solid var(--teal-dark); border-radius: 20px; padding: 60px; text-align: center; max-width: 1020px; margin-left: auto; margin-right: auto; }
+    .callout-headline { font-family: 'Playfair Display', serif; font-size: clamp(24px,3.5vw,40px); font-weight: 700; margin-bottom: 16px; }
+    .callout-headline span { color: var(--teal); }
+    .callout-sub { font-size: 16px; color: var(--grey); max-width: 580px; margin: 0 auto 32px; line-height: 1.8; }
+
+    /* BLOGGER CALLOUT */
+    .blogger-callout { max-width: 1100px; margin: 0 auto; padding: 80px 40px; }
+    .blogger-callout-inner { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 56px 60px; display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 48px; }
+    .blogger-callout-text h2 { font-family: 'Playfair Display', serif; font-size: clamp(22px,3vw,36px); font-weight: 700; line-height: 1.2; margin-bottom: 14px; }
+    .blogger-callout-text h2 span { color: var(--teal); }
+    .blogger-callout-text p { font-size: 15px; color: var(--grey); line-height: 1.8; max-width: 520px; }
+    .blogger-callout-cta { display: flex; flex-direction: column; align-items: center; gap: 10px; flex-shrink: 0; }
+    .blogger-price-note { font-size: 12px; color: var(--grey); text-align: center; }
+
+    /* SUPPORT */
+    #support { border-top: 1px solid var(--border); }
+    .support-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 48px; }
+    .support-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 28px; }
+    .support-card h3 { font-size: 17px; font-weight: 500; margin-bottom: 10px; }
+    .support-card p { font-size: 14px; color: var(--grey); line-height: 1.8; margin-bottom: 16px; }
+    .support-card a { color: var(--teal); text-decoration: none; font-size: 14px; }
+    .support-card a:hover { text-decoration: underline; }
+
+    /* PRIVACY */
+    #privacy { border-top: 1px solid var(--border); }
+    .privacy-block { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 40px; margin-top: 48px; }
+    .privacy-block h3 { font-size: 16px; font-weight: 500; color: var(--teal); margin: 28px 0 8px; }
+    .privacy-block h3:first-child { margin-top: 0; }
+    .privacy-block p, .privacy-block li { font-size: 14px; color: var(--grey); line-height: 1.9; }
+    .privacy-block ul { padding-left: 20px; margin-top: 8px; }
+    .privacy-block li { margin-bottom: 4px; }
+
+    /* FOOTER */
+    footer { background: var(--card); border-top: 1px solid var(--border); padding: 40px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+    .footer-logo { display: flex; align-items: center; gap: 10px; }
+    .footer-logo img { width: 28px; height: 28px; object-fit: contain; }
+    .footer-logo span { font-family: 'Playfair Display', serif; font-size: 16px; color: var(--white); }
+    .footer-links { display: flex; gap: 24px; flex-wrap: wrap; }
+    .footer-links a { color: var(--grey); text-decoration: none; font-size: 13px; transition: color 0.2s; }
+    .footer-links a:hover { color: var(--teal); }
+    .footer-copy { font-size: 12px; color: var(--border); width: 100%; text-align: center; margin-top: 8px; }
+
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* RESPONSIVE */
+    @media (max-width: 900px) {
+      .hero-centered { padding: 100px 24px 0; }
+      .hero-top { grid-template-columns: 1fr; text-align: center; }
+      .hero-left-text { align-items: center; text-align: center; }
+      .hero-right-brand { align-items: center; }
+      .hero-brand { justify-content: center; }
+      .hero-screenshots { gap: 8px; }
+      .screenshot-frame { border-radius: 16px; }
+    }
+    @media (max-width: 768px) {
+      nav { padding: 14px 20px; }
+      .nav-links { display: none; }
+      section { padding: 70px 24px; }
+      .callout { padding: 40px 24px; }
+      footer { padding: 32px 24px; }
+      .divider-line { margin: 0 24px; }
+      .weather-strip { padding: 14px 20px; gap: 16px; }
+      .blogger-callout { padding: 60px 24px; }
+      .blogger-callout-inner { grid-template-columns: 1fr; padding: 36px 28px; text-align: center; }
+    }
+    @media (max-width: 640px) {
+      .support-grid { grid-template-columns: 1fr; }
+      .screenshot-frame:nth-child(1), .screenshot-frame:nth-child(5) { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <a href="/" class="nav-logo">
+      <img src="Logo2048x2048.png" alt="PeakBake logo" />
+      <span>PEAKBAKE</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="#how-it-works">How it works</a></li>
+      <li><a href="#features">Features</a></li>
+      <li><a href="#download">Download</a></li>
+      <li><a href="#support">Support</a></li>
+      <li><a href="/widget">For Bloggers</a></li>
+    </ul>
+    <a href="#download" class="nav-cta">Download, $2.99</a>
+  </nav>
+
+  <!-- HERO -->
+  <div class="hero-centered">
+    <div class="hero-top">
+      <div class="hero-left-text">
+        <p class="hero-tagline">Weather-aware baking</p>
+        <h1 class="hero-headline">Bake right,<br /><span>wherever you are.</span></h1>
+        <p class="hero-sub">Every recipe assumes sea level. PeakBake adjusts our 100 classic recipes for your exact altitude, humidity, and barometric pressure.</p>
+      </div>
+      <div class="hero-right-brand">
+        <div class="hero-brand">
+          <img src="Logo2048x2048.png" alt="PeakBake" class="hero-logo-sm" />
+          <span class="hero-brand-name">PEAKBAKE</span>
+        </div>
+        <p style="font-size:13px;color:var(--teal);letter-spacing:2px;text-transform:uppercase;margin-bottom:32px;">Weather-aware baking</p>
+        <div class="hero-buttons" style="justify-content:flex-start;">
+          <a href="#download" class="btn-primary">&#11015; Download on the App Store</a>
+          <a href="#how-it-works" class="btn-secondary">How it works</a>
+        </div>
+        <p class="hero-price" style="text-align:left;margin-top:16px;">$2.99 one-time &middot; No subscription &middot; No ads</p>
+      </div>
+    </div>
+    <div class="hero-screenshots">
+      <div class="screenshot-frame"><img src="IMG_0841.png" alt="PeakBake adjusted ingredients" /></div>
+      <div class="screenshot-frame screenshot-tall"><img src="IMG_0843.png" alt="PeakBake recipe detail" /></div>
+      <div class="screenshot-frame screenshot-tall"><img src="IMG_0840.png" alt="PeakBake recipe browser" /></div>
+      <div class="screenshot-frame"><img src="IMG_0842.png" alt="PeakBake my book" /></div>
+      <div class="screenshot-frame"><img src="IMG_0844.png" alt="PeakBake settings" /></div>
+    </div>
+  </div>
+
+  <!-- WEATHER STRIP -->
+  <div class="weather-strip">
+    <span>&#128205; Your location</span>
+    <span class="divider">|</span>
+    <span>&#9968; Elevation detected</span>
+    <span class="divider">|</span>
+    <span>&#128167; Humidity reading</span>
+    <span class="divider">|</span>
+    <span>&#127777; Barometric pressure</span>
+    <span class="divider">|</span>
+    <span style="color:#1D9E75;">&#10003; Recipe adjusted</span>
+  </div>
+
+  <!-- HOW IT WORKS -->
+  <section id="how-it-works">
+    <p class="section-label">How it works</p>
+    <h2 class="section-headline">Three steps to a perfect bake</h2>
+    <p class="section-sub">PeakBake works silently in the background so you can focus on baking, not math.</p>
+    <div class="steps">
+      <div class="step-card" data-step="1">
+        <div class="step-icon">&#128205;</div>
+        <h3 class="step-title">PeakBake reads your location</h3>
+        <p class="step-desc">Using your device's GPS, PeakBake pinpoints your exact position and pulls live atmospheric data from Open-Meteo: elevation, humidity, and barometric pressure.</p>
+      </div>
+      <div class="step-card" data-step="2">
+        <div class="step-icon">&#129518;</div>
+        <h3 class="step-title">The engine runs the math</h3>
+        <p class="step-desc">Our adjustment engine applies real baking science, reducing leavening at altitude, adding liquid to compensate for evaporation, adjusting flour for humidity, and more.</p>
+      </div>
+      <div class="step-card" data-step="3">
+        <div class="step-icon">&#10003;</div>
+        <h3 class="step-title">You get your adjusted recipe</h3>
+        <p class="step-desc">Every ingredient is updated with up and down indicators showing exactly what changed and why. Bake adjustments for temperature and time are calculated automatically.</p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider-line" />
+
+  <!-- CALLOUT -->
+  <div style="padding:80px 0;">
+    <div class="callout">
+      <h2 class="callout-headline">June in Georgia shares recipes with followers<br /><span>baking at 8,000 feet.</span></h2>
+      <p class="callout-sub">Every major baking blog, cookbook, and recipe site assumes sea level. June's followers in Denver, Albuquerque, and Salt Lake City have been quietly failing those recipes for years, not because of June, but because no recipe accounts for altitude or humidity. PeakBake fixes that.</p>
+      <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;">
+        <a href="#download" class="btn-primary">Get PeakBake for $2.99</a>
+        <a href="/widget" class="btn-secondary">Add to your recipe site</a>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider-line" />
+
+  <!-- FEATURES -->
+  <section id="features">
+    <p class="section-label">Features</p>
+    <h2 class="section-headline">Everything a baker needs</h2>
+    <p class="section-sub">100 classic recipes across 6 categories, all fully adjusted for your conditions.</p>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">&#127838;</div>
+        <h3 class="feature-title">100 classic recipes</h3>
+        <p class="feature-desc">Yeast breads, quick breads, cakes, cookies, pastry, and savory. Every recipe includes ingredients, gram weights, and step-by-step instructions.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">&#8644;</div>
+        <h3 class="feature-title">Surprise Me</h3>
+        <p class="feature-desc">Not sure what to bake? Tap Surprise Me and get a random recipe from your chosen category, fully adjusted for your conditions.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">&#10133;</div>
+        <h3 class="feature-title">Custom add-ins</h3>
+        <p class="feature-desc">Add sweet, savory, or custom ingredients to any recipe. Chocolate chips, dried fruit, cheese. Adjust amounts with a tap.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">&#128214;</div>
+        <h3 class="feature-title">My Book</h3>
+        <p class="feature-desc">Save adjusted recipes to your personal collection. Add notes, ratings, and share your results with friends and family.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">&#9878;&#65039;</div>
+        <h3 class="feature-title">Cups or grams</h3>
+        <p class="feature-desc">Toggle between cups and grams globally or per recipe. Every ingredient shows both measurements so you can bake your way.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">&#128218;</div>
+        <h3 class="feature-title">Baking reference</h3>
+        <p class="feature-desc">Flour guide, 20-term glossary, and baking tips organized by category. Perfect for first-time bakers and seasoned pros alike.</p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider-line" />
+
+  <!-- BLOGGER CALLOUT -->
+  <div class="blogger-callout">
+    <div class="blogger-callout-inner">
+      <div class="blogger-callout-text">
+        <p class="section-label">For food bloggers</p>
+        <h2>Run a recipe site?<br /><span>Add altitude adjustments in 60 seconds.</span></h2>
+        <p>One line of code adds an "Adjust for my location" button to your recipe pages. Your readers click it, their GPS pulls live atmospheric data, and the ingredients update instantly. No subscription. No monthly bill.</p>
+      </div>
+      <div class="blogger-callout-cta">
+        <a href="/widget" class="btn-primary" style="white-space:nowrap;font-size:15px;padding:14px 28px;">Learn more &rarr;</a>
+        <p class="blogger-price-note">$4.99 one-time &middot; Domain-locked</p>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider-line" />
+
+  <!-- DOWNLOAD -->
+  <section id="download" style="text-align:center;">
+    <p class="section-label">Get the app</p>
+    <h2 class="section-headline">Available on iOS and Android</h2>
+    <p class="section-sub" style="margin:0 auto 40px;">One-time purchase of $2.99. No subscription. No ads. No account required.</p>
+    <div class="hero-buttons">
+      <a href="#" class="btn-primary">&#11015; Download on the App Store</a>
+      <a href="#" class="btn-secondary">Get it on Google Play</a>
+    </div>
+    <p style="margin-top:20px;font-size:13px;color:var(--grey);">$2.99 one-time &middot; No subscription &middot; No ads</p>
+  </section>
+
+  <hr class="divider-line" />
+
+  <!-- SUPPORT -->
+  <section id="support">
+    <p class="section-label">Support</p>
+    <h2 class="section-headline">We're here to help</h2>
+    <p class="section-sub">Questions, feedback, or issues, reach out and we'll get back to you promptly.</p>
+    <div class="support-grid">
+      <div class="support-card">
+        <h3>Contact us</h3>
+        <p>For support, questions, or feedback about PeakBake, email us directly. We typically respond within 24 hours.</p>
+        <a href="mailto:support&#64;peakbake.com">support&#64;peakbake.com</a>
+      </div>
+      <div class="support-card">
+        <h3>Frequently asked questions</h3>
+        <p><strong style="color:#fff;font-weight:500;">Why does PeakBake need my location?</strong><br />PeakBake uses GPS to pull live atmospheric data: elevation, humidity, and pressure, to adjust your recipes accurately. Location data is never stored or shared.</p>
+      </div>
+      <div class="support-card">
+        <h3>Share your baking results</h3>
+        <p>Made something great with PeakBake? We'd love to hear about it. Reach out and tell us how it turned out at altitude.</p>
+        <a href="mailto:hello&#64;peakbake.com">Get in touch</a>
+      </div>
+      <div class="support-card">
+        <h3>Technical issues</h3>
+        <p>If you're experiencing a bug or unexpected behavior, please email us with your device model, iOS or Android version, and a description of the issue.</p>
+        <a href="mailto:support&#64;peakbake.com">Report an issue</a>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider-line" />
+
+  <!-- PRIVACY -->
+  <section id="privacy">
+    <p class="section-label">Legal</p>
+    <h2 class="section-headline">Privacy Policy</h2>
+    <p class="section-sub">Last updated: April 2026</p>
+    <div class="privacy-block">
+      <h3>Overview</h3>
+      <p>PeakBake ("the app") is developed and maintained by Frank Hatcher. We are committed to protecting your privacy. This policy explains what data PeakBake collects, how it is used, and your rights as a user.</p>
+      <h3>Location Data</h3>
+      <p>PeakBake requests access to your device's GPS location for the sole purpose of retrieving live atmospheric data, including elevation, humidity, and barometric pressure, from Open-Meteo, a free and open weather API. This data is used exclusively to calculate recipe adjustments.</p>
+      <ul>
+        <li>Your location is never stored on our servers.</li>
+        <li>Your location is never shared with third parties.</li>
+        <li>Location data is used in real time and discarded after each session.</li>
+        <li>You may deny location access at any time in your device settings. The app will not function without location access as it is required for atmospheric data retrieval.</li>
+      </ul>
+      <h3>Data We Do Not Collect</h3>
+      <p>PeakBake does not collect, store, or transmit any of the following:</p>
+      <ul>
+        <li>Personal information such as name, email address, or account credentials</li>
+        <li>Device identifiers or advertising IDs</li>
+        <li>Usage analytics or behavioral data</li>
+        <li>Recipes saved in My Book are stored locally on your device only</li>
+      </ul>
+      <h3>Third-Party Services</h3>
+      <p>PeakBake uses Open-Meteo (open-meteo.com) to retrieve weather data. Open-Meteo is a free, open-source weather API. Please refer to their privacy policy for information on how they handle data.</p>
+      <h3>Data Storage</h3>
+      <p>All recipes saved to My Book are stored locally on your device using AsyncStorage. This data does not leave your device and is not accessible to us.</p>
+      <h3>Children's Privacy</h3>
+      <p>PeakBake is not directed at children under the age of 13 and we do not knowingly collect any personal information from children.</p>
+      <h3>Changes to This Policy</h3>
+      <p>We may update this privacy policy from time to time. Any changes will be reflected on this page with an updated date. Continued use of the app after changes constitutes acceptance of the revised policy.</p>
+      <h3>Contact</h3>
+      <p>If you have questions about this privacy policy, please contact us at <a href="mailto:hello&#64;peakbake.com" style="color:var(--teal);">hello&#64;peakbake.com</a>.</p>
+      <h3>Disclaimer</h3>
+      <p>PeakBake provides recipe adjustments based on atmospheric data and established baking science. Results may vary depending on ingredients, equipment, and technique. PeakBake is not liable for baking outcomes. All adjustments are provided as guidance only.</p>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-logo">
+      <img src="Logo2048x2048.png" alt="PeakBake" />
+      <span>PEAKBAKE</span>
+    </div>
+    <div class="footer-links">
+      <a href="#how-it-works">How it works</a>
+      <a href="#features">Features</a>
+      <a href="#download">Download</a>
+      <a href="#support">Support</a>
+      <a href="#privacy">Privacy</a>
+      <a href="/widget">Widget</a>
+      <a href="https://hatchappsllc.com" target="_blank" rel="noopener">Hatch Apps LLC</a>
+    </div>
+    <p class="footer-copy">&copy; 2026 Hatch Apps LLC. All rights reserved.</p>
+  </footer>
+
+  <script src="peakbake-widget.js"></script>
+
+</body>
+</html>
